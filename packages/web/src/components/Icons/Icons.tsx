@@ -78,9 +78,10 @@ export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20 }) => 
     <svg
       width={size}
       height={size}
-      viewBox="0 0 200 200"
+      viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -88,74 +89,74 @@ export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20 }) => 
     >
       {/* Head shape (angular) */}
       <polygon 
-        points="50,40 150,40 170,80 150,160 50,160 30,80" 
+        points="6,5 18,5 20,10 18,19 6,19 4,10" 
         fill="none" 
         stroke="currentColor" 
-        strokeWidth="4"
+        strokeWidth="2"
       />
 
       {/* Eyes (large downward-pointing outlined triangles) */}
       <polygon 
-        points="70,75 65,105 75,105" 
+        points="8,9 8,13 9,13" 
         fill="none" 
         stroke="currentColor" 
-        strokeWidth="4"
+        strokeWidth="2"
       />
       <polygon 
-        points="130,75 125,105 135,105" 
+        points="16,9 15,13 16,13" 
         fill="none" 
         stroke="currentColor" 
-        strokeWidth="4"
+        strokeWidth="2"
       />
 
       {/* Mouth (solid straight line) */}
       <line 
-        x1="70" 
-        y1="140" 
-        x2="130" 
-        y2="140" 
+        x1="8" 
+        y1="17" 
+        x2="16" 
+        y2="17" 
         stroke="currentColor" 
-        strokeWidth="4" 
+        strokeWidth="2" 
         strokeLinecap="round"
       />
 
       {/* Antennas */}
       <line 
-        x1="60" 
-        y1="40" 
-        x2="60" 
-        y2="20" 
+        x1="7" 
+        y1="5" 
+        x2="7" 
+        y2="2" 
         stroke="currentColor" 
-        strokeWidth="4" 
+        strokeWidth="2" 
         strokeLinecap="round"
       />
       <line 
-        x1="140" 
-        y1="40" 
-        x2="140" 
-        y2="20" 
+        x1="17" 
+        y1="5" 
+        x2="17" 
+        y2="2" 
         stroke="currentColor" 
-        strokeWidth="4" 
+        strokeWidth="2" 
         strokeLinecap="round"
       />
 
       {/* Glowing Star between antennas */}
       <g>
         <polygon 
-          points="100,10 103,18 112,18 105,24 108,32 100,28 92,32 95,24 88,18 97,18" 
+          points="12,1 12.4,2.2 13.4,2.2 12.6,3 13,4.2 12,3.4 11,4.2 11.4,3 10.6,2.2 11.6,2.2" 
           fill="currentColor"
         />
         <circle 
-          cx="100" 
-          cy="22" 
-          r="10" 
+          cx="12" 
+          cy="2.6" 
+          r="1.2" 
           fill="currentColor" 
           opacity="0.15"
         />
         <circle 
-          cx="100" 
-          cy="22" 
-          r="15" 
+          cx="12" 
+          cy="2.6" 
+          r="1.8" 
           fill="currentColor" 
           opacity="0.08"
         />

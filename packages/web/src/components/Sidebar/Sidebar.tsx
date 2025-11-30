@@ -5,7 +5,7 @@
 import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { Script, Note, NoteFilter, NoteSortOption } from '@otto-ai/core';
-import { ChatIcon, ScriptsIcon, NotesIcon } from '../Icons/Icons';
+import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon } from '../Icons/Icons';
 import { TabType } from '../TabContainer/TabContainer';
 import { OttoLogo } from '../OttoLogo/OttoLogo';
 import NoteList from '../Notes/NoteList';
@@ -262,14 +262,16 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
         >
           {isCollapsed ? '▶' : '◀'}
         </button>
+        {!isCollapsed && (
+          <button className="generate-script-button" onClick={onGenerateClick}>
+            <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
+            Generate New Script
+          </button>
+        )}
       </div>
 
       {!isCollapsed && (
         <>
-          {/* Generate New Script Button - first item under Otto AI */}
-          <button className="generate-script-button" onClick={onGenerateClick}>
-            ✨ Generate New Script
-          </button>
 
           {/* Navigation Tabs */}
           <div className="sidebar-tabs">
@@ -435,8 +437,17 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
                       onClick={() => handleScriptClick(script)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <div className="script-name">{script.name}</div>
-                      <div className="script-type">{script.executionType}</div>
+                      <div className="script-header">
+                        <div className="script-name">{script.name}</div>
+                        <div className="script-type">{script.executionType}</div>
+                      </div>
+                      {script.tags && script.tags.length > 0 && (
+                        <div className="script-tags">
+                          {script.tags.slice(0, 3).map((tag: string, idx: number) => (
+                            <span key={idx} className="tag">{tag}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

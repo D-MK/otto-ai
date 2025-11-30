@@ -46,6 +46,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onDebugClick, onSettingsClick, sh
     setShowUserMenu(false);
   };
 
+  const handleSettingsClick = () => {
+    if (onSettingsClick) {
+      onSettingsClick();
+    }
+    setShowUserMenu(false);
+  };
+
+  const handleDebugClick = () => {
+    if (onDebugClick) {
+      onDebugClick();
+    }
+    setShowUserMenu(false);
+  };
+
   return (
     <div className="app-header-container">
       <h2>
@@ -53,16 +67,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onDebugClick, onSettingsClick, sh
         <OttoLogo size={28} />
       </h2>
       <div className="header-buttons">
-        {onDebugClick && (
-          <button onClick={onDebugClick} className="header-button">
-            {showDebug ? 'Hide' : 'Show'} Debug
-          </button>
-        )}
-        {onSettingsClick && (
-          <button onClick={onSettingsClick} className="header-button">
-            Settings
-          </button>
-        )}
         <button
           className={`tts-toggle ${ttsEnabled ? 'active' : ''}`}
           onClick={toggleTTS}
@@ -70,25 +74,37 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onDebugClick, onSettingsClick, sh
         >
           {ttsEnabled ? '🔊' : '🔇'}
         </button>
-        {isAuthenticated && currentUser && (
-          <div className="user-menu-container" ref={userMenuRef}>
-            <button
-              className="user-button"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              title={currentUser.email}
-            >
-              👤
-            </button>
-            {showUserMenu && (
-              <div className="user-menu">
+        <div className="user-menu-container" ref={userMenuRef}>
+          <button
+            className="user-button"
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            title={isAuthenticated && currentUser ? currentUser.email : 'Menu'}
+          >
+            👤
+          </button>
+          {showUserMenu && (
+            <div className="user-menu">
+              {isAuthenticated && currentUser && (
                 <div className="user-menu-email">{currentUser.email}</div>
+              )}
+              {onSettingsClick && (
+                <button className="user-menu-item" onClick={handleSettingsClick}>
+                  Settings
+                </button>
+              )}
+              {onDebugClick && (
+                <button className="user-menu-item" onClick={handleDebugClick}>
+                  {showDebug ? 'Hide' : 'Show'} Debug
+                </button>
+              )}
+              {isAuthenticated && currentUser && (
                 <button className="user-menu-item" onClick={handleLogout}>
                   Logout
                 </button>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

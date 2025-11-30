@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { AIScriptGenerator, AIConfig, AIProvider } from '../../services/aiScriptGenerator';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
+import { MagicWandIcon } from '../Icons/Icons';
 import './AIScriptGenerator.css';
 
 interface AIScriptGeneratorProps {
@@ -141,7 +142,10 @@ const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose 
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content ai-generator" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>✨ AI Script Generator</h2>
+          <h2>
+            <MagicWandIcon size={24} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+            AI Script Generator
+          </h2>
           <button onClick={onClose} className="close-button">×</button>
         </div>
 

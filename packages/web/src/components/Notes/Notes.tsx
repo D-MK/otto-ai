@@ -108,10 +108,6 @@ const Notes: React.FC<NotesProps> = ({ onClose, selectedNote: propSelectedNote, 
   return (
     <div className="notes-overlay">
       <div className="notes-container">
-        <div className="notes-header">
-          <h2>Notes</h2>
-        </div>
-
         {feedback && (
           <div className={`feedback-banner ${feedback.type}`}>
             {feedback.message}

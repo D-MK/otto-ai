@@ -318,7 +318,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <MobileNav activeTab={activeTab} onTabChange={setActiveTab} onGenerateClick={handleGenerateClick} />
 
       {showAIGenerator && (
         <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading AI generator...</div></div>}>

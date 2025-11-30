@@ -73,3 +73,94 @@ export const NotesIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   </svg>
 );
 
+export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20 }) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 200 200"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Head shape (angular) */}
+      <polygon 
+        points="50,40 150,40 170,80 150,160 50,160 30,80" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="4"
+      />
+
+      {/* Eyes (large downward-pointing outlined triangles) */}
+      <polygon 
+        points="70,75 65,105 75,105" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="4"
+      />
+      <polygon 
+        points="130,75 125,105 135,105" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="4"
+      />
+
+      {/* Mouth (solid straight line) */}
+      <line 
+        x1="70" 
+        y1="140" 
+        x2="130" 
+        y2="140" 
+        stroke="currentColor" 
+        strokeWidth="4" 
+        strokeLinecap="round"
+      />
+
+      {/* Antennas */}
+      <line 
+        x1="60" 
+        y1="40" 
+        x2="60" 
+        y2="20" 
+        stroke="currentColor" 
+        strokeWidth="4" 
+        strokeLinecap="round"
+      />
+      <line 
+        x1="140" 
+        y1="40" 
+        x2="140" 
+        y2="20" 
+        stroke="currentColor" 
+        strokeWidth="4" 
+        strokeLinecap="round"
+      />
+
+      {/* Glowing Star between antennas */}
+      <g>
+        <polygon 
+          points="100,10 103,18 112,18 105,24 108,32 100,28 92,32 95,24 88,18 97,18" 
+          fill="currentColor"
+        />
+        <circle 
+          cx="100" 
+          cy="22" 
+          r="10" 
+          fill="currentColor" 
+          opacity="0.15"
+        />
+        <circle 
+          cx="100" 
+          cy="22" 
+          r="15" 
+          fill="currentColor" 
+          opacity="0.08"
+        />
+      </g>
+    </svg>
+  );
+};
+

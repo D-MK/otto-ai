@@ -4,15 +4,16 @@
 
 import React from 'react';
 import { TabType } from '../TabContainer/TabContainer';
-import { ChatIcon, ScriptsIcon, NotesIcon } from '../Icons/Icons';
+import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon } from '../Icons/Icons';
 import './MobileNav.css';
 
 interface MobileNavProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  onGenerateClick: () => void;
 }
 
-const MobileNav: React.FC<MobileNavProps> = ({ activeTab, onTabChange }) => {
+const MobileNav: React.FC<MobileNavProps> = ({ activeTab, onTabChange, onGenerateClick }) => {
   return (
     <div className="mobile-nav">
       <button
@@ -35,6 +36,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeTab, onTabChange }) => {
         aria-label="Notes"
       >
         <NotesIcon size={24} />
+      </button>
+      <button
+        className="mobile-nav-generate"
+        onClick={onGenerateClick}
+        aria-label="Generate New Script"
+      >
+        <MagicWandIcon size={20} />
       </button>
     </div>
   );

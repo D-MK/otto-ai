@@ -12,8 +12,10 @@
   border-top: 1px solid var(--border-color, #e0e0e0);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  padding: 0;
+  padding: 0 1rem;
   height: 60px;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .mobile-nav-item {
@@ -54,6 +56,42 @@
 }
 
 .mobile-nav-item:active svg {
+  transform: scale(0.9);
+}
+
+.mobile-nav-generate {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--chat-header-bg, var(--accent-color, #0066cc));
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.mobile-nav-generate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: var(--accent-hover, #0052a3);
+}
+
+.mobile-nav-generate:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-nav-generate svg {
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav-generate:active svg {
   transform: scale(0.9);
 }
 

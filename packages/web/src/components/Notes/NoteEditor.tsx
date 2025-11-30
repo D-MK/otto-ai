@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Note, NoteColor } from '@otto-ai/core';
 import { useConversationStore } from '../../stores/conversation';
+import { MagicWandIcon } from '../Icons/Icons';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -177,7 +178,14 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
             disabled={isGenerating || !content.trim()}
             title="Generate title and summary using AI"
           >
-            {isGenerating ? '⏳ Generating...' : '✨ Generate Title & Summary'}
+            {isGenerating ? (
+              <>⏳ Generating...</>
+            ) : (
+              <>
+                <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
+                Generate Title & Summary
+              </>
+            )}
           </button>
         </div>
       </div>

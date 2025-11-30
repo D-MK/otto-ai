@@ -179,9 +179,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved, sel
   return (
     <div className="script-editor-overlay">
       <div className="script-editor">
-        <div className="editor-header">
-          <h2>Script Manager</h2>
-        </div>
 
         {feedback && (
           <div className={`feedback-banner ${feedback.type}`}>

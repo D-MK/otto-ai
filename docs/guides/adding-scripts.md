@@ -83,7 +83,7 @@ Call an external API endpoint.
 - Example: `/exchange-rates`, `/weather/current`
 
 **MCP Configuration:**
-- Set in `.env` file (see [MCP Integration](./mcp-integration.md))
+- Set in `.env` file (see [MCP Integration](../integration/mcp-integration.md))
 
 #### Gemini Chat (Conversational AI)
 Have a conversation with Gemini AI with context awareness.

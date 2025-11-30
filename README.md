@@ -17,7 +17,7 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 - **Debug Mode**: Detailed intent classification and execution information
 - **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
 - **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
-- **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme with color pickers for sidebar tabs, chat header, and all main UI elements
+- **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme
 
 ## Quick Start
 
@@ -36,9 +36,6 @@ npm install
 cd packages/core
 npm run build
 
-# The MCP client now enforces typed JSON responses, so be sure your
-# external MCP APIs return data that matches the expected schema.
-
 # Start web app
 cd ../web
 npm run dev
@@ -48,141 +45,41 @@ The app will be available at `http://localhost:3000`.
 
 ### Using Seed Scripts
 
-The app comes with several example scripts:
-
-1. **BMI Calculator**: Calculate body mass index
-   - Trigger: "calculate my bmi"
-   - Parameters: weight (kg), height (cm)
-
-2. **Currency Converter**: Convert between currencies (requires MCP setup)
-   - Trigger: "convert currency"
-   - Parameters: amount, from currency, to currency
-
-3. **Daily Standup Summary**: Create work summaries
-   - Trigger: "daily standup"
-   - Parameters: yesterday's work, today's work, blockers
-
-4. **Ask Gemini**: Conversational AI assistant powered by Gemini 2.5 Flash
-   - Trigger: "ask gemini", "gemini", "hey gemini"
-   - Parameters: question
-   - Supports up to 3 back-and-forth exchanges before starting fresh
-   - Automatically uses API key from AI Script Generator
-
-5. **Insulin Calculator**: Calculate insulin dosage
-   - Trigger: "insulin", "calculate insulin"
-   - Parameters: value for calculation
+The app comes with several example scripts. See the [Adding Scripts guide](docs/guides/adding-scripts.md) for details on creating and managing scripts.
 
 ## AI Script Generator
 
 The app includes an AI-powered script generator that can create scripts automatically from natural language descriptions.
 
-### Supported AI Providers
-
+**Supported AI Providers:**
 - **Google Gemini 2.5 Flash**: Fast and efficient model with free tier available, get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 - **Claude by Anthropic**: High quality results, get your API key from [Anthropic Console](https://console.anthropic.com/)
 
-### How to Use
-
+**How to Use:**
 1. Click the **✨ Generate New Script** button in the sidebar
 2. Configure your AI provider and API key (encrypted and saved locally in browser)
-3. Describe the script you want to create (e.g., "Create a script that calculates the tip amount for a restaurant bill")
-4. Review the generated script (name, description, tags, trigger phrases, parameters, and code)
+3. Describe the script you want to create
+4. Review the generated script
 5. Save directly or edit before saving
 
-### API Key Security
-
+**API Key Security:**
 API keys are automatically encrypted before storage using the Web Crypto API with AES-GCM encryption. The app supports two encryption modes:
+- **Device-Specific Encryption (Default)**: Seamless protection with no password required
+- **Password-Based Encryption (Optional)**: Works across different devices and browsers
 
-1. **Device-Specific Encryption (Default)**: Keys are encrypted using your device's fingerprint (browser, screen resolution, timezone, etc.). This provides seamless protection with no password required. However, if your device characteristics change significantly, you may need to re-enter your API keys.
-
-2. **Password-Based Encryption (Optional)**: Set a master password in Settings to enable password-based encryption. This allows your API keys to work across different devices and browsers. The password is stored in sessionStorage (cleared when the browser closes) and never saved to disk.
-
-**Setting a Master Password:**
-- Go to Settings → API Keys tab
-- Click "Set Master Password"
-- Enter a password (minimum 8 characters)
-- Confirm the password
-- Existing API keys will be automatically re-encrypted with the new password
-
-**Benefits of Master Password:**
-- Works across devices and browsers
-- More secure than device-specific encryption
-- Keys persist even if device characteristics change
-- Password is never stored permanently (only in sessionStorage)
-
-**Note**: If you forget your master password, you'll need to re-enter your API keys. The password is required each browser session to decrypt your keys.
-
-The AI generator creates complete scripts with:
-- Intelligent keyword analysis from your description
-- Context-aware trigger phrases based on keywords you mention
-- Relevant tags automatically assigned based on the script's domain (e.g., "math", "finance", "conversion")
-- Parameter definitions with user-friendly prompts
-- Sandboxed JavaScript code
-
-### Customizing the AI Prompt
-
-You can customize the system prompt used by the AI Script Generator to better suit your needs. This allows you to:
-- Adjust the tone and style of generated scripts
-- Add specific guidelines or constraints
-- Include examples relevant to your use case
-- Modify the output format requirements
-
-**To customize the prompt:**
-
-1. Go to **Settings** → **AI Prompt** tab
-2. Edit the system prompt in the textarea
-3. Click **Save Prompt to Supabase** to persist your changes
-4. The custom prompt will be automatically used for all future script generations
-
-**Note:** 
-- Requires Supabase to be configured (URL and API key)
-- The prompt is stored in Supabase in the `ai_config` table
-- If no custom prompt is found, the default prompt is used
-- Changes take effect immediately for new script generations
-
-**Database Setup:**
-
-If you haven't already, run the migration to create the `ai_config` table:
-
-```sql
--- See migrations/001_create_ai_config_table.sql
-```
-
-Or run it directly in your Supabase SQL editor.
+For detailed information on customizing the AI prompt, see the [AI Prompt Customization guide](docs/guides/ai-prompt-customization.md).
 
 ## Gemini Conversational AI
 
 The app includes a built-in conversational AI powered by Gemini 2.5 Flash for answering questions and having natural discussions.
 
-### Features
+**Features:**
+- Context-aware conversations with history tracking
+- Automatically resets after 3 back-and-forth turns
+- Shared API key with AI Script Generator
+- Trigger with "ask gemini", "hey gemini", or just "gemini"
 
-- **Context-Aware**: Maintains conversation history across multiple exchanges
-- **Conversation Limits**: Automatically resets after 3 back-and-forth turns to keep responses focused
-- **Shared API Key**: Uses the same Gemini API key configured in the AI Script Generator
-- **Easy Access**: Trigger with "ask gemini", "hey gemini", or just "gemini"
-
-### How to Use
-
-1. Make sure you have a Gemini API key configured (via AI Script Generator)
-2. Say "ask gemini what is quantum computing?"
-3. Follow up with related questions (up to 2 more exchanges)
-4. After 3 turns, the conversation automatically resets for the next topic
-
-### Example Conversation
-
-```
-You: ask gemini what is machine learning?
-Bot: [Explains machine learning] [2 turn(s) remaining in this conversation]
-
-You: what are some examples?
-Bot: [Provides examples] [1 turn(s) remaining in this conversation]
-
-You: how is it different from AI?
-Bot: [Explains difference] [Conversation limit reached. Next message will start a new conversation.]
-
-You: tell me about neural networks
-Bot: [New conversation started] [Explains neural networks] [2 turn(s) remaining]
-```
+For more details, see the [Architecture documentation](docs/architecture/architecture.md#gemini-chat-service).
 
 ## Project Structure
 
@@ -206,6 +103,8 @@ otto-ai/
 ├── docs/                     # Documentation
 └── .env.example              # Environment configuration
 ```
+
+For detailed architecture information, see the [Architecture Overview](docs/architecture/architecture.md).
 
 ## Environment Variables
 
@@ -234,6 +133,8 @@ VITE_MCP_BASE_URL=https://api.example.com/mcp
 VITE_MCP_AUTH_TYPE=bearer
 VITE_MCP_AUTH_TOKEN=your-token-here
 ```
+
+For detailed MCP integration setup, see the [MCP Integration guide](docs/integration/mcp-integration.md).
 
 ## Deployment
 
@@ -268,17 +169,8 @@ The app is configured for deployment on [Fly.io](https://fly.io).
    fly open
    ```
 
-The deployment includes:
-- Multi-stage Docker build for optimized image size
-- Static file server for the React app
-- Automatic HTTPS via Fly.io
-- Auto-scaling (machines start/stop based on traffic)
-- Health checks for improved reliability
-- Request concurrency limits for better performance
-- Graceful shutdown handling
-
 **Environment Variables:**
-If you need to set environment variables for the build process (e.g., Vite environment variables), you can set them in Fly.io:
+If you need to set environment variables for the build process, you can set them in Fly.io:
 ```bash
 fly secrets set VITE_MCP_BASE_URL=https://api.example.com/mcp
 fly secrets set VITE_MCP_AUTH_TYPE=bearer
@@ -304,75 +196,19 @@ npm run build
 
 Otto AI uses a comprehensive testing suite with unit tests, integration tests, and E2E tests.
 
-### Unit Tests
-
-**Core Package:**
+**Quick Start:**
 ```bash
-cd packages/core
+# Run all tests
 npm test
 
-# With coverage
+# Run with coverage
 npm run test:coverage
-```
-
-**Web Package:**
-```bash
-cd packages/web
-npm test
-
-# With coverage
-npm run test:coverage
-
-# Interactive UI
-npm run test:ui
-```
-
-**All Tests:**
-```bash
-# From root directory
-npm test
-
-# With coverage for all packages
-npm run test:coverage
-```
-
-### Integration Tests
-
-Integration tests verify that multiple components work together correctly:
-
-```bash
-cd packages/core
-npm test -- __tests__/intent-router.test.ts
-```
-
-### E2E Tests
-
-End-to-end tests use Playwright to test user journeys:
-
-```bash
-# Install Playwright browsers (first time only)
-npx playwright install
 
 # Run E2E tests
 npm run test:e2e
-
-# Run with UI
-npm run test:e2e:ui
 ```
 
-### Test Coverage
-
-The project aims for **80%+ code coverage**. Coverage reports are generated in:
-- `packages/core/coverage/`
-- `packages/web/coverage/`
-
-### CI/CD
-
-Tests run automatically on:
-- Every push to `main` or `develop` branches
-- Every pull request
-
-See `.github/workflows/test.yml` for the CI configuration.
+For detailed testing information, see the [Testing Guide](docs/development/testing.md).
 
 ## Customization
 
@@ -388,14 +224,7 @@ Otto AI includes 5 classic preset themes and supports custom theme creation:
 - **Purple**: Vibrant purple color scheme with elegant styling
 
 **Custom Themes:**
-Create your own custom theme by selecting colors for:
-- Sidebar tab active background
-- Sidebar tab (non-active) background
-- Chat header background
-- Accent color
-- Background colors (primary and secondary)
-- Text colors (primary and secondary)
-- Border color
+Create your own custom theme by selecting colors for sidebar tabs, chat header, accent colors, backgrounds, text, and borders.
 
 **To change themes:**
 1. Open Settings (click the settings icon)
@@ -406,14 +235,27 @@ Create your own custom theme by selecting colors for:
 6. The theme is applied immediately as you make changes
 7. Click "Save" to persist your preference
 
-Themes are stored in your browser's localStorage and persist across sessions. Custom themes are saved separately and can be reset to any preset theme at any time.
+Themes are stored in your browser's localStorage and persist across sessions.
 
 ## Documentation
 
-- [Architecture Overview](docs/architecture.md)
-- [Adding Scripts](docs/adding-scripts.md)
-- [MCP Integration](docs/mcp-integration.md)
-- [Portfolio/SAAS Readiness Review](docs/portfolio-saas-readiness-review.md)
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+### User Guides
+- **[Adding Scripts](docs/guides/adding-scripts.md)** - Complete guide to creating, configuring, and managing scripts
+- **[AI Prompt Customization](docs/guides/ai-prompt-customization.md)** - How to customize the AI Script Generator system prompt
+
+### Technical Documentation
+- **[Architecture Overview](docs/architecture/architecture.md)** - System architecture, components, data flow, and design decisions
+- **[Testing Guide](docs/development/testing.md)** - Testing infrastructure, unit tests, integration tests, and E2E testing
+- **[MCP Integration](docs/integration/mcp-integration.md)** - Guide to integrating external APIs using the Model Context Protocol
+
+### Reviews & Analysis
+- **[Application Review](docs/reviews/app-review.md)** - Comprehensive feature analysis and technical assessment
+- **[Portfolio/SAAS Readiness Review](docs/reviews/portfolio-saas-readiness-review.md)** - Production readiness assessment and recommendations
+- **[Next Features & Roadmap](docs/reviews/next-features.md)** - Feature gap analysis and prioritized roadmap
+
+See the [Documentation Index](docs/README.md) for a complete overview.
 
 ## Development Workflow
 
@@ -424,6 +266,8 @@ Themes are stored in your browser's localStorage and persist across sessions. Cu
 2. **Test locally**: Use debug mode to see intent classification
 3. **Iterate**: Adjust trigger phrases and parameters based on user feedback
 4. **Share scripts**: Export scripts as JSON to share with others or backup your collection
+
+For detailed development guidelines, see the [Testing Guide](docs/development/testing.md) and [Architecture Overview](docs/architecture/architecture.md).
 
 ## Tech Stack
 
@@ -451,8 +295,10 @@ The web app has been optimized for fast initial load times:
   - Device-specific encryption (default) - seamless, no password needed
   - Password-based encryption (optional) - works across devices, more secure
 - **Web Crypto API**: Uses browser-native encryption (AES-GCM) with PBKDF2 key derivation
-- **Session-Based Password**: Master password stored only in sessionStorage (cleared on browser close)
+- **Session-Based Password**: Master password stored only in sessionStorage (cleared when the browser closes)
 - **Automatic Migration**: Existing keys are automatically re-encrypted when you set a master password
+
+For detailed security information, see the [Architecture documentation](docs/architecture/architecture.md#security-considerations).
 
 ## Limitations (MVP Scope)
 
@@ -470,6 +316,8 @@ This is an MVP prototype. To contribute:
 2. Create a feature branch
 3. Add tests for new functionality
 4. Submit a pull request
+
+For development guidelines, see the [Testing Guide](docs/development/testing.md) and [Architecture Overview](docs/architecture/architecture.md).
 
 ## License
 

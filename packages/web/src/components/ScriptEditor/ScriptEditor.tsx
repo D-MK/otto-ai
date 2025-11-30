@@ -10,21 +10,36 @@ import './ScriptEditor.css';
 interface ScriptEditorProps {
   onClose: () => void;
   onScriptSaved?: () => void;
+  selectedScript?: Script | null;
+  onScriptChange?: (script: Script | null) => void;
 }
 
 type SortOption = 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc';
 
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) => {
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved, selectedScript: propSelectedScript, onScriptChange }) => {
   const { scriptStorage, router, settings, saveSettings } = useConversationStore();
-  const [scripts, setScripts] = useState<Script[]>([]);
-  const [selectedScript, setSelectedScript] = useState<Script | null>(null);
+  const [selectedScript, setSelectedScript] = useState<Script | null>(propSelectedScript || null);
   const [isEditing, setIsEditing] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Filter and sort state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>((settings as any).scriptSortPreference || 'name-asc');
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  // Update local state when prop changes
+  useEffect(() => {
+    if (propSelectedScript) {
+      setSelectedScript(propSelectedScript);
+      setIsEditing(true);
+      setName(propSelectedScript.name);
+      setDescription(propSelectedScript.description);
+      setTags(propSelectedScript.tags.join(', '));
+      setTriggerPhrases(propSelectedScript.triggerPhrases.join('\n'));
+      setExecutionType(propSelectedScript.executionType);
+      setCode(propSelectedScript.code || '');
+      setMcpEndpoint(propSelectedScript.mcpEndpoint || '');
+      setParameters(propSelectedScript.parameters);
+    } else {
+      setIsEditing(false);
+      resetForm();
+    }
+  }, [propSelectedScript]);
 
   // Form state
   const [name, setName] = useState('');
@@ -36,95 +51,13 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
   const [mcpEndpoint, setMcpEndpoint] = useState('');
   const [parameters, setParameters] = useState<ParameterDef[]>([]);
 
-  useEffect(() => {
-    loadScripts();
-  }, []);
-
-  const loadScripts = () => {
-    if (scriptStorage) {
-      const allScripts = scriptStorage.getAll();
-      setScripts(allScripts);
-    }
-  };
-
-  // Get all unique tags from all scripts
-  const allTags = Array.from(new Set(scripts.flatMap(script => script.tags))).sort();
-
-  // Filter scripts by search query and tags
-  const filteredScripts = scripts.filter(script => {
-    // Search filter
-    const matchesSearch = searchQuery === '' ||
-      script.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      script.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // Tag filter
-    const matchesTags = selectedTags.size === 0 ||
-      script.tags.some(tag => selectedTags.has(tag));
-
-    return matchesSearch && matchesTags;
-  });
-
-  // Sort filtered scripts
-  const sortedScripts = [...filteredScripts].sort((a, b) => {
-    switch (sortBy) {
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      case 'name-desc':
-        return b.name.localeCompare(a.name);
-      case 'type-asc':
-        return a.executionType.localeCompare(b.executionType);
-      case 'type-desc':
-        return b.executionType.localeCompare(a.executionType);
-      default:
-        return 0;
-    }
-  });
-
-  const toggleTag = (tag: string) => {
-    const newSelectedTags = new Set(selectedTags);
-    if (newSelectedTags.has(tag)) {
-      newSelectedTags.delete(tag);
-    } else {
-      newSelectedTags.add(tag);
-    }
-    setSelectedTags(newSelectedTags);
-  };
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedTags(new Set());
-  };
-
-  const handleSortChange = async (newSort: SortOption) => {
-    setSortBy(newSort);
-    // Save to settings
-    try {
-      await saveSettings({
-        ...settings,
-        scriptSortPreference: newSort,
-      } as any);
-    } catch (error) {
-      console.error('Failed to save sort preference:', error);
-    }
-  };
-
   const handleNewScript = () => {
+    if (onScriptChange) {
+      onScriptChange(null);
+    }
     setSelectedScript(null);
     setIsEditing(true);
     resetForm();
-  };
-
-  const handleEditScript = (script: Script) => {
-    setSelectedScript(script);
-    setIsEditing(true);
-    setName(script.name);
-    setDescription(script.description);
-    setTags(script.tags.join(', '));
-    setTriggerPhrases(script.triggerPhrases.join('\n'));
-    setExecutionType(script.executionType);
-    setCode(script.code || '');
-    setMcpEndpoint(script.mcpEndpoint || '');
-    setParameters(script.parameters);
   };
 
   const handleSave = () => {
@@ -164,9 +97,13 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
       }
 
       router.refreshScripts();
-      loadScripts();
       setIsEditing(false);
       resetForm();
+
+      // Clear selection after saving
+      if (onScriptChange) {
+        onScriptChange(null);
+      }
 
       // Notify parent that script was saved
       if (onScriptSaved) {
@@ -188,10 +125,12 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
       try {
         scriptStorage.delete(id);
         router.refreshScripts();
-        loadScripts();
         if (selectedScript?.id === id) {
           setIsEditing(false);
           resetForm();
+          if (onScriptChange) {
+            onScriptChange(null);
+          }
         }
 
         // Notify parent that script was deleted
@@ -242,7 +181,6 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
       <div className="script-editor">
         <div className="editor-header">
           <h2>Script Manager</h2>
-          <button onClick={onClose} className="close-button">✕</button>
         </div>
 
         {feedback && (
@@ -252,75 +190,17 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
         )}
 
         <div className="editor-content">
-          <div className="script-list">
-            <div className="list-header">
-              <h3>Scripts</h3>
-              <button onClick={handleNewScript} className="new-button">+ New</button>
-            </div>
-
-            <div className="search-sort-controls">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search scripts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <select
-                className="sort-select"
-                value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value as SortOption)}
-              >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="type-asc">Type (A-Z)</option>
-                <option value="type-desc">Type (Z-A)</option>
-              </select>
-            </div>
-
-            {allTags.length > 0 && (
-              <div className="tag-filter-section">
-                <div className="tag-filter-header">
-                  <span className="filter-label">Filter by tags:</span>
-                  {selectedTags.size > 0 && (
-                    <button className="clear-filters-btn" onClick={clearFilters}>
-                      Clear ({selectedTags.size})
-                    </button>
-                  )}
-                </div>
-                <div className="tag-filters">
-                  {allTags.map((tag) => (
-                    <button
-                      key={tag}
-                      className={`tag-filter-chip ${selectedTags.has(tag) ? 'active' : ''}`}
-                      onClick={() => toggleTag(tag)}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
+          {!isEditing && (
+            <div className="script-editor-empty-state">
+              <div className="empty-state-content">
+                <h3>No script selected</h3>
+                <p>Select a script from the sidebar or create a new one</p>
+                <button onClick={handleNewScript} className="new-button-large">
+                  + Create New Script
+                </button>
               </div>
-            )}
-
-            <div className="scripts">
-              {sortedScripts.length === 0 ? (
-                <div className="no-scripts">
-                  {searchQuery || selectedTags.size > 0 ? 'No scripts match your filters' : 'No scripts available'}
-                </div>
-              ) : (
-                sortedScripts.map(script => (
-                  <div
-                    key={script.id}
-                    className={`script-item ${selectedScript?.id === script.id ? 'selected' : ''}`}
-                    onClick={() => handleEditScript(script)}
-                  >
-                    <div className="script-name">{script.name}</div>
-                    <div className="script-type">{script.executionType}</div>
-                  </div>
-                ))
-              )}
             </div>
-          </div>
+          )}
 
           {isEditing && (
             <div className="script-form">
@@ -405,7 +285,10 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved }) =
               <div className="form-group">
                 <div className="section-header">
                   <label>Parameters</label>
-                  <button onClick={addParameter} className="add-param-button">+ Add Parameter</button>
+                  <button onClick={addParameter} className="add-param-button">
+                    <span className="add-param-text">+ Add Parameter</span>
+                    <span className="add-param-icon">+</span>
+                  </button>
                 </div>
 
                 {parameters.map((param, index) => (

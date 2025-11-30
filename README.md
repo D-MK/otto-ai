@@ -16,14 +16,15 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 - **Text-to-Speech**: Optional TTS for bot responses
 - **Debug Mode**: Detailed intent classification and execution information
 - **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
-- **Notes System**: Full-featured note-taking with AI-powered title/summary generation
-- **Custom Themes**: Choose from 5 color themes (Light, Dark, Blue, Green, Purple) with instant preview
+- **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
+- **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme with color pickers for sidebar tabs, chat header, and all main UI elements
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 20+ and npm
+- If using WSL, ensure Node.js 20+ is installed in your WSL environment (not just Windows)
 
 ### Installation
 
@@ -374,22 +375,35 @@ See `.github/workflows/test.yml` for the CI configuration.
 
 ### Color Themes
 
-Otto AI includes 5 built-in color themes that you can switch between:
+Otto AI includes 5 classic preset themes and supports custom theme creation:
 
-- **Light**: Clean, bright default theme
-- **Dark**: Dark mode for low-light environments
-- **Blue**: Cool blue color scheme
-- **Green**: Natural green color scheme
-- **Purple**: Vibrant purple color scheme
+**Preset Themes:**
+- **Light**: Clean, bright default theme with modern blue accents
+- **Dark**: Dark mode with slate colors for low-light environments
+- **Blue**: Cool blue color scheme with professional styling
+- **Green**: Natural green color scheme with earthy tones
+- **Purple**: Vibrant purple color scheme with elegant styling
+
+**Custom Themes:**
+Create your own custom theme by selecting colors for:
+- Sidebar tab active background
+- Sidebar tab (non-active) background
+- Chat header background
+- Accent color
+- Background colors (primary and secondary)
+- Text colors (primary and secondary)
+- Border color
 
 **To change themes:**
 1. Open Settings (click the settings icon)
 2. Go to the "Appearance" tab
-3. Select your preferred theme
-4. The theme is applied immediately
-5. Click "Save" to persist your preference
+3. Choose between "Preset Themes" or "Custom Theme"
+4. For presets: Select your preferred theme
+5. For custom: Use color pickers or enter hex codes for each color option
+6. The theme is applied immediately as you make changes
+7. Click "Save" to persist your preference
 
-Themes are stored in your browser's localStorage and persist across sessions.
+Themes are stored in your browser's localStorage and persist across sessions. Custom themes are saved separately and can be reset to any preset theme at any time.
 
 ## Documentation
 

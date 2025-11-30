@@ -25,6 +25,11 @@ export interface ThemeColors {
   tabActiveBg: string;
   tabActiveBorder: string;
   tabContentBg: string;
+  // Sidebar and chat-specific colors
+  sidebarTabActiveBg: string;
+  sidebarTabBg: string;
+  chatHeaderBg: string;
+  createScriptButtonColor: string;
 }
 
 export const THEME_PRESETS: Record<ThemePreset, ThemeColors> = {
@@ -35,116 +40,134 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeColors> = {
     textPrimary: '#1a1a1a',
     textSecondary: '#666666',
     borderColor: '#d0d0d0',
-    accentColor: '#0066cc',
-    accentHover: '#0052a3',
-    successColor: '#28a745',
-    errorColor: '#dc3545',
+    accentColor: '#2563eb',
+    accentHover: '#1d4ed8',
+    successColor: '#10b981',
+    errorColor: '#ef4444',
     tabHeaderBg: '#f5f5f5',
     tabHeaderBorder: '#e0e0e0',
     tabInactiveColor: '#666666',
     tabHoverBg: 'rgba(0, 0, 0, 0.05)',
     tabHoverColor: '#333333',
-    tabActiveColor: '#0066cc',
+    tabActiveColor: '#2563eb',
     tabActiveBg: '#ffffff',
-    tabActiveBorder: '#0066cc',
+    tabActiveBorder: '#2563eb',
     tabContentBg: '#ffffff',
+    sidebarTabActiveBg: '#2563eb',
+    sidebarTabBg: '#ffffff',
+    chatHeaderBg: '#2563eb',
+    createScriptButtonColor: '#4CAF50',
   },
   dark: {
-    bgPrimary: '#1a1a1a',
-    bgSecondary: '#2d2d2d',
-    bgTertiary: '#404040',
-    textPrimary: '#ffffff',
-    textSecondary: '#b0b0b0',
-    borderColor: '#404040',
-    accentColor: '#4a9eff',
-    accentHover: '#6bb3ff',
-    successColor: '#48c774',
-    errorColor: '#f14668',
-    tabHeaderBg: '#2d2d2d',
-    tabHeaderBorder: '#404040',
-    tabInactiveColor: '#b0b0b0',
+    bgPrimary: '#0f172a',
+    bgSecondary: '#1e293b',
+    bgTertiary: '#334155',
+    textPrimary: '#f1f5f9',
+    textSecondary: '#cbd5e1',
+    borderColor: '#475569',
+    accentColor: '#3b82f6',
+    accentHover: '#2563eb',
+    successColor: '#22c55e',
+    errorColor: '#f87171',
+    tabHeaderBg: '#1e293b',
+    tabHeaderBorder: '#475569',
+    tabInactiveColor: '#cbd5e1',
     tabHoverBg: 'rgba(255, 255, 255, 0.1)',
-    tabHoverColor: '#ffffff',
-    tabActiveColor: '#4a9eff',
-    tabActiveBg: '#1a1a1a',
-    tabActiveBorder: '#4a9eff',
-    tabContentBg: '#1a1a1a',
+    tabHoverColor: '#f1f5f9',
+    tabActiveColor: '#3b82f6',
+    tabActiveBg: '#0f172a',
+    tabActiveBorder: '#3b82f6',
+    tabContentBg: '#0f172a',
+    sidebarTabActiveBg: '#3b82f6',
+    sidebarTabBg: '#0f172a',
+    chatHeaderBg: '#3b82f6',
+    createScriptButtonColor: '#22c55e',
   },
   blue: {
     bgPrimary: '#ffffff',
-    bgSecondary: '#e8f4f8',
-    bgTertiary: '#d1e9f1',
-    textPrimary: '#1a3a52',
-    textSecondary: '#4a6b7a',
-    borderColor: '#b8d4e0',
-    accentColor: '#0066cc',
-    accentHover: '#0052a3',
-    successColor: '#28a745',
-    errorColor: '#dc3545',
-    tabHeaderBg: '#e8f4f8',
-    tabHeaderBorder: '#b8d4e0',
-    tabInactiveColor: '#4a6b7a',
-    tabHoverBg: 'rgba(0, 102, 204, 0.1)',
-    tabHoverColor: '#1a3a52',
-    tabActiveColor: '#0066cc',
+    bgSecondary: '#eff6ff',
+    bgTertiary: '#dbeafe',
+    textPrimary: '#1e3a8a',
+    textSecondary: '#3b82f6',
+    borderColor: '#93c5fd',
+    accentColor: '#2563eb',
+    accentHover: '#1d4ed8',
+    successColor: '#10b981',
+    errorColor: '#ef4444',
+    tabHeaderBg: '#eff6ff',
+    tabHeaderBorder: '#93c5fd',
+    tabInactiveColor: '#3b82f6',
+    tabHoverBg: 'rgba(37, 99, 235, 0.1)',
+    tabHoverColor: '#1e3a8a',
+    tabActiveColor: '#2563eb',
     tabActiveBg: '#ffffff',
-    tabActiveBorder: '#0066cc',
+    tabActiveBorder: '#2563eb',
     tabContentBg: '#ffffff',
+    sidebarTabActiveBg: '#2563eb',
+    sidebarTabBg: '#ffffff',
+    chatHeaderBg: '#2563eb',
+    createScriptButtonColor: '#2563eb',
   },
   green: {
     bgPrimary: '#ffffff',
-    bgSecondary: '#f0f8f0',
-    bgTertiary: '#e1f1e1',
-    textPrimary: '#1a3a1a',
-    textSecondary: '#4a6b4a',
-    borderColor: '#b8d4b8',
-    accentColor: '#28a745',
-    accentHover: '#218838',
-    successColor: '#28a745',
-    errorColor: '#dc3545',
-    tabHeaderBg: '#f0f8f0',
-    tabHeaderBorder: '#b8d4b8',
-    tabInactiveColor: '#4a6b4a',
-    tabHoverBg: 'rgba(40, 167, 69, 0.1)',
-    tabHoverColor: '#1a3a1a',
-    tabActiveColor: '#28a745',
+    bgSecondary: '#f0fdf4',
+    bgTertiary: '#dcfce7',
+    textPrimary: '#14532d',
+    textSecondary: '#16a34a',
+    borderColor: '#86efac',
+    accentColor: '#22c55e',
+    accentHover: '#16a34a',
+    successColor: '#22c55e',
+    errorColor: '#ef4444',
+    tabHeaderBg: '#f0fdf4',
+    tabHeaderBorder: '#86efac',
+    tabInactiveColor: '#16a34a',
+    tabHoverBg: 'rgba(34, 197, 94, 0.1)',
+    tabHoverColor: '#14532d',
+    tabActiveColor: '#22c55e',
     tabActiveBg: '#ffffff',
-    tabActiveBorder: '#28a745',
+    tabActiveBorder: '#22c55e',
     tabContentBg: '#ffffff',
+    sidebarTabActiveBg: '#22c55e',
+    sidebarTabBg: '#ffffff',
+    chatHeaderBg: '#22c55e',
+    createScriptButtonColor: '#22c55e',
   },
   purple: {
     bgPrimary: '#ffffff',
-    bgSecondary: '#f8f0f8',
-    bgTertiary: '#f1e1f1',
-    textPrimary: '#3a1a3a',
-    textSecondary: '#6b4a6b',
-    borderColor: '#d4b8d4',
-    accentColor: '#7c3aed',
-    accentHover: '#6d28d9',
-    successColor: '#28a745',
-    errorColor: '#dc3545',
-    tabHeaderBg: '#f8f0f8',
-    tabHeaderBorder: '#d4b8d4',
-    tabInactiveColor: '#6b4a6b',
-    tabHoverBg: 'rgba(124, 58, 237, 0.1)',
-    tabHoverColor: '#3a1a3a',
-    tabActiveColor: '#7c3aed',
+    bgSecondary: '#faf5ff',
+    bgTertiary: '#f3e8ff',
+    textPrimary: '#581c87',
+    textSecondary: '#9333ea',
+    borderColor: '#c084fc',
+    accentColor: '#a855f7',
+    accentHover: '#9333ea',
+    successColor: '#22c55e',
+    errorColor: '#ef4444',
+    tabHeaderBg: '#faf5ff',
+    tabHeaderBorder: '#c084fc',
+    tabInactiveColor: '#9333ea',
+    tabHoverBg: 'rgba(168, 85, 247, 0.1)',
+    tabHoverColor: '#581c87',
+    tabActiveColor: '#a855f7',
     tabActiveBg: '#ffffff',
-    tabActiveBorder: '#7c3aed',
+    tabActiveBorder: '#a855f7',
     tabContentBg: '#ffffff',
+    sidebarTabActiveBg: '#a855f7',
+    sidebarTabBg: '#ffffff',
+    chatHeaderBg: '#a855f7',
+    createScriptButtonColor: '#a855f7',
   },
 };
 
 export class ThemeService {
-  private static currentTheme: ThemePreset = 'light';
+  private static currentTheme: ThemePreset | 'custom' = 'light';
+  private static customThemeColors: ThemeColors | null = null;
 
   /**
-   * Apply a theme preset to the document
+   * Apply theme colors to the document
    */
-  static applyTheme(theme: ThemePreset): void {
-    this.currentTheme = theme;
-    const colors = THEME_PRESETS[theme];
-    
+  private static applyColors(colors: ThemeColors): void {
     const root = document.documentElement;
     root.style.setProperty('--bg-primary', colors.bgPrimary);
     root.style.setProperty('--bg-secondary', colors.bgSecondary);
@@ -167,13 +190,47 @@ export class ThemeService {
     root.style.setProperty('--tab-active-bg', colors.tabActiveBg);
     root.style.setProperty('--tab-active-border', colors.tabActiveBorder);
     root.style.setProperty('--tab-content-bg', colors.tabContentBg);
+    
+    // Sidebar and chat-specific variables
+    root.style.setProperty('--sidebar-tab-active-bg', colors.sidebarTabActiveBg);
+    root.style.setProperty('--sidebar-tab-bg', colors.sidebarTabBg);
+    root.style.setProperty('--chat-header-bg', colors.chatHeaderBg);
+    root.style.setProperty('--create-script-button-color', colors.createScriptButtonColor);
+  }
+
+  /**
+   * Apply a theme preset to the document
+   */
+  static applyTheme(theme: ThemePreset): void {
+    this.currentTheme = theme;
+    const colors = THEME_PRESETS[theme];
+    this.applyColors(colors);
+  }
+
+  /**
+   * Apply a custom theme
+   */
+  static applyCustomTheme(colors: ThemeColors): void {
+    this.currentTheme = 'custom';
+    this.customThemeColors = colors;
+    this.applyColors(colors);
   }
 
   /**
    * Get the current theme
    */
-  static getCurrentTheme(): ThemePreset {
+  static getCurrentTheme(): ThemePreset | 'custom' {
     return this.currentTheme;
+  }
+
+  /**
+   * Get the current theme colors (preset or custom)
+   */
+  static getCurrentThemeColors(): ThemeColors {
+    if (this.currentTheme === 'custom' && this.customThemeColors) {
+      return this.customThemeColors;
+    }
+    return THEME_PRESETS[this.currentTheme as ThemePreset];
   }
 
   /**
@@ -181,6 +238,18 @@ export class ThemeService {
    */
   static initializeTheme(): void {
     const savedTheme = localStorage.getItem('otto-theme') as ThemePreset | null;
+    const savedCustomTheme = localStorage.getItem('otto-custom-theme');
+    
+    if (savedCustomTheme) {
+      try {
+        const customColors = JSON.parse(savedCustomTheme) as ThemeColors;
+        this.applyCustomTheme(customColors);
+        return;
+      } catch (e) {
+        console.error('Failed to load custom theme:', e);
+      }
+    }
+    
     if (savedTheme && THEME_PRESETS[savedTheme]) {
       this.applyTheme(savedTheme);
     } else {
@@ -191,9 +260,18 @@ export class ThemeService {
   /**
    * Save theme preference to localStorage
    */
-  static saveTheme(theme: ThemePreset): void {
-    localStorage.setItem('otto-theme', theme);
-    this.applyTheme(theme);
+  static saveTheme(theme: ThemePreset | ThemeColors): void {
+    if (typeof theme === 'string') {
+      // Preset theme
+      localStorage.setItem('otto-theme', theme);
+      localStorage.removeItem('otto-custom-theme');
+      this.applyTheme(theme);
+    } else {
+      // Custom theme
+      localStorage.setItem('otto-custom-theme', JSON.stringify(theme));
+      localStorage.setItem('otto-theme', 'custom');
+      this.applyCustomTheme(theme);
+    }
   }
 }
 

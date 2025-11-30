@@ -5,11 +5,14 @@
 import React, { useEffect, useState, useRef, Suspense } from 'react';
 import Chat, { ChatHandle } from './components/Chat/Chat';
 import Sidebar, { SidebarHandle } from './components/Sidebar/Sidebar';
+import AppHeader from './components/AppHeader/AppHeader';
 import { useConversationStore } from './stores/conversation';
+import { Script, Note } from '@otto-ai/core';
 import { SupabaseStorageService } from './services/supabaseStorage';
 import { SyncService, SyncResult, ConflictResolution } from './services/syncService';
 import { CSVExportService } from './services/csvExport';
 import { ThemeService } from './services/themeService';
+import MobileNav from './components/MobileNav/MobileNav';
 import './App.css';
 
 // Lazy load conditional components to improve initial load time
@@ -20,7 +23,7 @@ const Settings = React.lazy(() => import('./components/Settings/Settings').then(
 const ConflictResolver = React.lazy(() => import('./components/ConflictResolver/ConflictResolver').then(m => ({ default: m.ConflictResolver })));
 const Auth = React.lazy(() => import('./components/Auth/Auth'));
 const Notes = React.lazy(() => import('./components/Notes/Notes'));
-import TabContainer, { TabType } from './components/TabContainer/TabContainer';
+import { TabType } from './components/TabContainer/TabContainer';
 
 // Load seed scripts
 import seedScripts from '../../../seed-data/scripts.json';
@@ -49,6 +52,8 @@ const App: React.FC = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [selectedScript, setSelectedScript] = useState<Script | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const chatRef = useRef<ChatHandle>(null);
   const sidebarRef = useRef<SidebarHandle>(null);
 
@@ -268,33 +273,52 @@ const App: React.FC = () => {
           ref={sidebarRef}
           onKeywordClick={handleKeywordClick}
           onGenerateClick={handleGenerateClick}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onScriptSelect={setSelectedScript}
+          onNoteSelect={setSelectedNote}
+          selectedScriptId={selectedScript?.id || null}
+          selectedNoteId={selectedNote?.id || null}
         />
-        <TabContainer activeTab={activeTab} onTabChange={setActiveTab}>
+        <div className="main-content">
+          <AppHeader
+            onDebugClick={DEBUG_MODE ? () => setShowDebug(!showDebug) : undefined}
+            onSettingsClick={() => setShowSettings(true)}
+            showDebug={showDebug}
+          />
           {activeTab === 'chat' && (
             <Chat
               ref={chatRef}
-              onScriptsClick={() => setActiveTab('scripts')}
-              onNotesClick={() => setActiveTab('notes')}
-              onDebugClick={DEBUG_MODE ? () => setShowDebug(!showDebug) : undefined}
-              onSettingsClick={() => setShowSettings(true)}
-              showDebug={showDebug}
             />
           )}
           {activeTab === 'scripts' && (
             <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading scripts...</div></div>}>
               <ScriptEditor
                 onClose={() => setActiveTab('chat')}
-                onScriptSaved={() => sidebarRef.current?.refresh()}
+                onScriptSaved={() => {
+                  sidebarRef.current?.refresh();
+                  setSelectedScript(null);
+                }}
+                selectedScript={selectedScript}
+                onScriptChange={setSelectedScript}
               />
             </Suspense>
           )}
           {activeTab === 'notes' && (
             <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading notes...</div></div>}>
-              <Notes onClose={() => setActiveTab('chat')} />
+              <Notes 
+                onClose={() => setActiveTab('chat')}
+                selectedNote={selectedNote}
+                onNoteChange={setSelectedNote}
+                onNoteSaved={() => sidebarRef.current?.refreshNotes()}
+              />
             </Suspense>
           )}
-        </TabContainer>
+        </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />
 
       {showAIGenerator && (
         <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading AI generator...</div></div>}>

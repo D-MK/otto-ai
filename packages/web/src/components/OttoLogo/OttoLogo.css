@@ -1,0 +1,12 @@
+.otto-logo {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  color: inherit;
+  transition: transform 0.2s ease;
+}
+
+.otto-logo:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+

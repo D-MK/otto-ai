@@ -1,0 +1,129 @@
+/**
+ * AppHeader component styles - shared header visible in all tabs
+ */
+
+.app-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: var(--chat-header-bg, var(--accent-color));
+  color: white;
+  border-bottom: 2px solid var(--accent-hover);
+}
+
+/* Mobile adjustments for app header */
+@media (max-width: 768px) {
+  .app-header-container {
+    padding: 0.75rem 1rem;
+  }
+  
+  .app-header-container h2 {
+    font-size: 1.1rem;
+  }
+}
+
+.app-header-container h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.header-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.header-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tts-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.tts-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tts-toggle.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* User Menu Styles */
+.user-menu-container {
+  position: relative;
+}
+
+.user-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-menu-email {
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border-color);
+  word-break: break-all;
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-menu-item:hover {
+  background-color: var(--bg-secondary);
+}
+

@@ -13,18 +13,13 @@ export interface ChatHandle {
 }
 
 interface ChatProps {
-  onScriptsClick?: () => void;
-  onDebugClick?: () => void;
-  onSettingsClick?: () => void;
-  showDebug?: boolean;
+  // Props removed - header moved to AppHeader component
 }
 
-const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, onSettingsClick, showDebug = false }, ref) => {
+const Chat = forwardRef<ChatHandle, ChatProps>(({ onDebugClick, onSettingsClick, showDebug = false }, ref) => {
   const [input, setInput] = useState('');
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     setInput: (text: string) => {
@@ -38,12 +33,7 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
   const {
     messageHistory,
     isProcessing,
-    ttsEnabled,
     sendMessage,
-    toggleTTS,
-    isAuthenticated,
-    currentUser,
-    logout,
   } = useConversationStore();
 
   const scrollToBottom = () => {
@@ -53,22 +43,6 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
   useEffect(() => {
     scrollToBottom();
   }, [messageHistory]);
-
-  // Close user menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setShowUserMenu(false);
-      }
-    };
-
-    if (showUserMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showUserMenu]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,60 +65,8 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    setShowUserMenu(false);
-  };
-
   return (
     <div className="chat-container">
-      <div className="chat-header">
-        <h2>Otto AI</h2>
-        <div className="header-buttons">
-          {onScriptsClick && (
-            <button onClick={onScriptsClick} className="header-button">
-              Scripts
-            </button>
-          )}
-          {onDebugClick && (
-            <button onClick={onDebugClick} className="header-button">
-              {showDebug ? 'Hide' : 'Show'} Debug
-            </button>
-          )}
-          {onSettingsClick && (
-            <button onClick={onSettingsClick} className="header-button">
-              Settings
-            </button>
-          )}
-          <button
-            className={`tts-toggle ${ttsEnabled ? 'active' : ''}`}
-            onClick={toggleTTS}
-            title={ttsEnabled ? 'Disable TTS' : 'Enable TTS'}
-          >
-            {ttsEnabled ? '🔊' : '🔇'}
-          </button>
-          {isAuthenticated && currentUser && (
-            <div className="user-menu-container" ref={userMenuRef}>
-              <button
-                className="user-button"
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                title={currentUser.email}
-              >
-                👤
-              </button>
-              {showUserMenu && (
-                <div className="user-menu">
-                  <div className="user-menu-email">{currentUser.email}</div>
-                  <button className="user-menu-item" onClick={handleLogout}>
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
       <div className="messages">
         {messageHistory.length === 0 && (
           <div className="welcome-message">

@@ -50,6 +50,29 @@
   overflow: hidden;
 }
 
+/* On mobile, main content takes full width */
+@media (max-width: 768px) {
+  .app-content {
+    flex-direction: column;
+  }
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary, white);
+  padding-bottom: 60px; /* Space for mobile bottom nav */
+}
+
+/* Remove bottom padding on desktop */
+@media (min-width: 769px) {
+  .main-content {
+    padding-bottom: 0;
+  }
+}
+
 .loading-screen {
   display: flex;
   flex-direction: column;

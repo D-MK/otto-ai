@@ -24,7 +24,7 @@ const API_KEY_STORAGE = 'gemini_api_key';
 const AI_CONFIG_STORAGE = 'ai_config'; // Shared with AIScriptGenerator
 
 export class GeminiChatService {
-  private apiKey: string | null;
+  private apiKey: string | null = null;
 
   constructor() {
     // Load API key asynchronously
@@ -244,6 +244,29 @@ export class GeminiChatService {
    */
   hasApiKey(): boolean {
     return !!this.apiKey;
+  }
+
+  /**
+   * Get the Gemini model for use in other services
+   */
+  getModel(): any {
+    if (!this.apiKey) {
+      return null;
+    }
+
+    const ai = new GoogleGenAI({
+      apiKey: this.apiKey,
+    });
+
+    // Return a model object that can generate content
+    return {
+      generateContent: async (prompt: string) => {
+        return await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+      },
+    };
   }
 
   /**

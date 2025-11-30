@@ -409,3 +409,46 @@
   font-size: 13px;
   color: var(--text-secondary);
 }
+
+/* Theme Selector */
+.theme-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.theme-option {
+  text-transform: capitalize;
+  padding: 12px 24px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+}
+
+.theme-option:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.theme-option.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.theme-option.active:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}

@@ -1,0 +1,23 @@
+{
+  "name": "otto-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Otto AI - Cross-platform automation assistant with natural language interface",
+  "workspaces": [
+    "packages/core",
+    "packages/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=packages/web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint packages/*/src --ext .ts,.tsx"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  }
+}

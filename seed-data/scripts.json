@@ -1,0 +1,139 @@
+[
+  {
+    "name": "BMI Calculator",
+    "description": "Calculate body mass index from weight and height",
+    "tags": ["health", "calculator", "fitness"],
+    "triggerPhrases": [
+      "calculate my bmi",
+      "what's my body mass index",
+      "calculate body mass index",
+      "check my bmi"
+    ],
+    "parameters": [
+      {
+        "name": "weight",
+        "type": "number",
+        "required": true,
+        "prompt": "What's your weight in kilograms?"
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "required": true,
+        "prompt": "And your height in centimeters?"
+      }
+    ],
+    "executionType": "local",
+    "code": "const heightInMeters = height / 100;\nconst bmi = weight / (heightInMeters * heightInMeters);\nconst rounded = Math.round(bmi * 10) / 10;\n\nlet category;\nif (rounded < 18.5) {\n  category = 'underweight';\n} else if (rounded < 25) {\n  category = 'normal weight';\n} else if (rounded < 30) {\n  category = 'overweight';\n} else {\n  category = 'obese';\n}\n\nreturn `Your BMI is ${rounded}, which falls in the '${category}' category.`;"
+  },
+  {
+    "name": "Currency Converter",
+    "description": "Convert amounts between different currencies using live exchange rates",
+    "tags": ["finance", "currency", "converter"],
+    "triggerPhrases": [
+      "convert currency",
+      "exchange rate",
+      "convert dollars to euros",
+      "how much is"
+    ],
+    "parameters": [
+      {
+        "name": "amount",
+        "type": "number",
+        "required": true,
+        "prompt": "How much would you like to convert?"
+      },
+      {
+        "name": "from",
+        "type": "string",
+        "required": true,
+        "prompt": "From which currency? (e.g., USD)"
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "required": true,
+        "prompt": "To which currency? (e.g., EUR)"
+      }
+    ],
+    "executionType": "mcp",
+    "mcpEndpoint": "/exchange-rates"
+  },
+  {
+    "name": "Daily Standup Summary",
+    "description": "Create a summary of daily work activities for standup meetings",
+    "tags": ["productivity", "work", "standup"],
+    "triggerPhrases": [
+      "daily standup",
+      "standup summary",
+      "what did i work on",
+      "daily summary for work"
+    ],
+    "parameters": [
+      {
+        "name": "yesterday",
+        "type": "string",
+        "required": true,
+        "prompt": "What did you work on yesterday?"
+      },
+      {
+        "name": "today",
+        "type": "string",
+        "required": true,
+        "prompt": "What are you working on today?"
+      },
+      {
+        "name": "blockers",
+        "type": "string",
+        "required": false,
+        "prompt": "Any blockers or issues? (Type 'none' if not)"
+      }
+    ],
+    "executionType": "local",
+    "code": "const blockersText = blockers && blockers.toLowerCase() !== 'none' \n  ? `\\n\\n**Blockers:** ${blockers}` \n  : '';\n\nreturn `**Daily Standup Summary**\\n\\n**Yesterday:** ${yesterday}\\n\\n**Today:** ${today}${blockersText}`;"
+  },
+  {
+    "name": "Insulin Calculator",
+    "description": "Calculate insulin dosage using the formula ((x * 18) - 80) / 40",
+    "tags": ["health", "calculator", "insulin", "diabetes"],
+    "triggerPhrases": [
+      "insul",
+      "insulin",
+      "calculate insulin",
+      "insulin dose",
+      "insulin dosage"
+    ],
+    "parameters": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true,
+        "prompt": "What is the value for the calculation?"
+      }
+    ],
+    "executionType": "local",
+    "code": "const result = ((x * 18) - 80) / 40;\nconst rounded = Math.round(result * 100) / 100;\nreturn `For a value of ${x}, the calculated result is: ${rounded}`;"
+  },
+  {
+    "name": "Ask Gemini",
+    "description": "Have a conversation with Gemini AI to answer questions, get information, or discuss topics. Supports up to 3 back-and-forth exchanges.",
+    "tags": ["ai", "gemini", "assistant", "question", "chat"],
+    "triggerPhrases": [
+      "ask gemini",
+      "gemini",
+      "hey gemini",
+      "ask ai",
+      "question for gemini",
+      "chat with gemini"
+    ],
+    "parameters": [
+      {
+        "name": "question",
+        "type": "string",
+        "required": true,
+        "prompt": "What would you like to ask?"
+      }
+    ],
+    "executionType": "gemini-chat"
+  }
+]

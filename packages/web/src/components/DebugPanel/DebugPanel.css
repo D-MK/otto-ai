@@ -1,0 +1,101 @@
+.debug-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background-color: var(--bg-primary);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+  z-index: 100;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.debug-panel.open {
+  width: 350px;
+  visibility: visible;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.debug-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  padding: 0.25rem;
+  min-width: 30px;
+}
+
+.toggle-button:hover {
+  color: var(--text-primary);
+}
+
+.debug-content {
+  padding: 1rem;
+  overflow-y: auto;
+  height: calc(100% - 60px);
+}
+
+.debug-section {
+  margin-bottom: 1.5rem;
+}
+
+.debug-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.debug-data {
+  background-color: var(--bg-secondary);
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.debug-data div {
+  margin-bottom: 0.5rem;
+}
+
+.debug-data div:last-child {
+  margin-bottom: 0;
+}
+
+.debug-data strong {
+  color: var(--text-primary);
+}
+
+.debug-data pre {
+  background-color: var(--bg-tertiary);
+  padding: 0.5rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 0.5rem 0 0 0;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.8rem;
+}
+
+.debug-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.875rem;
+}

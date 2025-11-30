@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(make:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
+      "Bash(docker build -t otto-ai-test .)",
+      "Bash(npm test)",
+      "Bash(npm install)",
+      "Bash(npx vitest:*)",
+      "Bash(npm install:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

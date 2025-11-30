@@ -17,6 +17,7 @@ const DebugPanel = React.lazy(() => import('./components/DebugPanel/DebugPanel')
 const AIScriptGenerator = React.lazy(() => import('./components/AIScriptGenerator/AIScriptGenerator'));
 const Settings = React.lazy(() => import('./components/Settings/Settings').then(m => ({ default: m.Settings })));
 const ConflictResolver = React.lazy(() => import('./components/ConflictResolver/ConflictResolver').then(m => ({ default: m.ConflictResolver })));
+const Auth = React.lazy(() => import('./components/Auth/Auth'));
 
 // Load seed scripts
 import seedScripts from '../../../seed-data/scripts.json';
@@ -24,13 +25,25 @@ import seedScripts from '../../../seed-data/scripts.json';
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true' || true;
 
 const App: React.FC = () => {
-  const { initialize, scriptStorage, router, settings, saveSettings, reinitializeWithSettings } =
-    useConversationStore();
+  const {
+    initialize,
+    scriptStorage,
+    router,
+    settings,
+    saveSettings,
+    reinitializeWithSettings,
+    checkAuthState,
+    handleAuthSuccess,
+    isAuthenticated,
+    authChecked,
+    currentUser,
+  } = useConversationStore();
   const [showEditor, setShowEditor] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showConflictResolver, setShowConflictResolver] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const chatRef = useRef<ChatHandle>(null);
@@ -38,9 +51,9 @@ const App: React.FC = () => {
 
   // Load settings asynchronously without blocking initialization
   useEffect(() => {
-    const { loadSettings } = useConversationStore.getState();
+    const { loadSettings, checkAuthState } = useConversationStore.getState();
     loadSettings()
-      .then((loadedSettings) => {
+      .then(async (loadedSettings) => {
         // Settings loaded, but don't block app initialization
         // The app will reinitialize when settings are available
         if (loadedSettings.mcpServers && loadedSettings.mcpServers.length > 0) {
@@ -48,6 +61,9 @@ const App: React.FC = () => {
           const { reinitializeWithSettings } = useConversationStore.getState();
           reinitializeWithSettings();
         }
+
+        // Check auth state after settings are loaded
+        await checkAuthState();
       })
       .catch((err) => {
         console.error('Failed to load settings:', err);
@@ -91,6 +107,13 @@ const App: React.FC = () => {
 
     setIsInitialized(true);
   }, [scriptStorage, router]);
+
+  // Show auth modal when user is not authenticated and Supabase is configured
+  useEffect(() => {
+    if (authChecked && !isAuthenticated && settings.supabaseUrl && settings.supabaseApiKey) {
+      setShowAuth(true);
+    }
+  }, [authChecked, isAuthenticated, settings.supabaseUrl, settings.supabaseApiKey]);
 
   const handleKeywordClick = (keyword: string) => {
     if (chatRef.current) {
@@ -200,6 +223,22 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAuthSuccessWrapper = async (userId: string, email: string) => {
+    await handleAuthSuccess(userId, email);
+    setShowAuth(false);
+  };
+
+  const handleAuthSkip = () => {
+    setShowAuth(false);
+  };
+
+  // Determine if we should show auth modal
+  const shouldShowAuth = authChecked &&
+                        !isAuthenticated &&
+                        settings.supabaseUrl &&
+                        settings.supabaseApiKey &&
+                        showAuth;
+
   if (!isInitialized) {
     return (
       <div className="loading-screen">
@@ -261,6 +300,14 @@ const App: React.FC = () => {
               setShowConflictResolver(false);
               setSyncResult(null);
             }}
+          />
+        </Suspense>
+      )}
+      {shouldShowAuth && (
+        <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading authentication...</div></div>}>
+          <Auth
+            onAuthSuccess={handleAuthSuccessWrapper}
+            onSkip={handleAuthSkip}
           />
         </Suspense>
       )}

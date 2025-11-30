@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { EncryptionService } from '../../services/encryption';
+import { SupabaseStorageService } from '../../services/supabaseStorage';
 import './Settings.css';
 
 export interface MCPServerConfig {
@@ -11,6 +12,7 @@ export interface MCPServerConfig {
 }
 
 export type StorageMode = 'localStorage' | 'supabase';
+export type ScriptSortPreference = 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc';
 
 export interface SettingsData {
   geminiApiKey: string;
@@ -18,6 +20,7 @@ export interface SettingsData {
   supabaseUrl: string;
   mcpServers: MCPServerConfig[];
   storageMode: StorageMode;
+  scriptSortPreference?: ScriptSortPreference;
 }
 
 interface SettingsProps {
@@ -38,12 +41,16 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
     JSON.stringify(settings.mcpServers, null, 2)
   );
   const [jsonError, setJsonError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'api-keys' | 'mcp-servers' | 'sync'>('api-keys');
+  const [activeTab, setActiveTab] = useState<'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt'>('api-keys');
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string>('');
   const [hasPassword, setHasPassword] = useState(false);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiPromptLoading, setAiPromptLoading] = useState(false);
+  const [aiPromptError, setAiPromptError] = useState<string>('');
+  const [aiPromptSuccess, setAiPromptSuccess] = useState(false);
 
   useEffect(() => {
     setGeminiApiKey(settings.geminiApiKey);
@@ -53,7 +60,121 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
     setMcpServersJson(JSON.stringify(settings.mcpServers, null, 2));
     setJsonError('');
     setHasPassword(EncryptionService.hasMasterPassword());
-  }, [settings, isOpen]);
+    
+    // Load AI prompt from Supabase when opening settings
+    if (isOpen && activeTab === 'ai-prompt') {
+      loadAIPrompt();
+    }
+  }, [settings, isOpen, activeTab]);
+
+  const loadAIPrompt = async () => {
+    if (!supabaseUrl || !supabaseApiKey) {
+      setAiPromptError('Please configure Supabase URL and API key first');
+      return;
+    }
+
+    setAiPromptLoading(true);
+    setAiPromptError('');
+    setAiPromptSuccess(false);
+
+    try {
+      const supabaseStorage = new SupabaseStorageService(supabaseUrl, supabaseApiKey);
+      const config = await supabaseStorage.getAIConfig('default');
+      
+      if (config) {
+        setAiPrompt(config.systemPrompt);
+      } else {
+        // Load default prompt from AIScriptGenerator
+        const defaultPrompt = `You are an expert at creating automation scripts. Generate a script based on the user's description.
+
+The script should be returned as a JSON object with the following structure:
+{
+  "name": "Script Name",
+  "description": "Brief description of what the script does",
+  "tags": ["tag1", "tag2"],
+  "triggerPhrases": ["phrase1", "phrase2", "phrase3"],
+  "parameters": [
+    {
+      "name": "paramName",
+      "type": "string|number|boolean|date",
+      "required": true,
+      "prompt": "What should I ask the user?"
+    }
+  ],
+  "executionType": "local",
+  "code": "JavaScript code that uses the parameters and returns a string result"
+}
+
+Important guidelines:
+1. The code should be clean, sandboxed JavaScript that only uses Math, Date, and JSON globals
+2. Parameters are available as variables in the code
+3. The code MUST return a string (use return statement)
+4. Create 3-4 relevant trigger phrases based on keywords from the user's description
+5. Analyze the user's description for key concepts and add 2-4 relevant tags (e.g., "math", "finance", "time", "conversion", "calculation")
+6. Look for keywords the user mentions and ensure trigger phrases include variations of those keywords
+7. Keep parameter names simple and lowercase
+8. The code should handle edge cases gracefully
+9. Tags should be lowercase and relevant to the script's domain/purpose
+
+Example code format:
+const result = someCalculation;
+return \`The result is \${result}\`;
+
+Return ONLY the JSON object, no additional text or explanation.`;
+        setAiPrompt(defaultPrompt);
+      }
+    } catch (error) {
+      setAiPromptError(error instanceof Error ? error.message : 'Failed to load AI prompt');
+    } finally {
+      setAiPromptLoading(false);
+    }
+  };
+
+  const handleSaveAIPrompt = async () => {
+    if (!supabaseUrl || !supabaseApiKey) {
+      setAiPromptError('Please configure Supabase URL and API key first');
+      return;
+    }
+
+    if (!aiPrompt.trim()) {
+      setAiPromptError('Prompt cannot be empty');
+      return;
+    }
+
+    setAiPromptLoading(true);
+    setAiPromptError('');
+    setAiPromptSuccess(false);
+
+    try {
+      const supabaseStorage = new SupabaseStorageService(supabaseUrl, supabaseApiKey);
+      
+      // Try to update existing config, or create new one
+      const existingConfig = await supabaseStorage.getAIConfig('default');
+      
+      if (existingConfig) {
+        await supabaseStorage.updateAIConfig({
+          id: 'default',
+          systemPrompt: aiPrompt.trim(),
+        });
+      } else {
+        await supabaseStorage.upsertAIConfig({
+          id: 'default',
+          systemPrompt: aiPrompt.trim(),
+          geminiModel: 'gemini-2.5-flash',
+          claudeModel: 'claude-3-5-sonnet-20241022',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      setAiPromptSuccess(true);
+      setTimeout(() => setAiPromptSuccess(false), 3000);
+    } catch (error) {
+      setAiPromptError(error instanceof Error ? error.message : 'Failed to save AI prompt');
+    } finally {
+      setAiPromptLoading(false);
+    }
+  };
 
   const validateMcpServersJson = (jsonStr: string): MCPServerConfig[] | null => {
     try {
@@ -240,6 +361,17 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
             onClick={() => setActiveTab('sync')}
           >
             Sync
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'ai-prompt' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('ai-prompt');
+              if (!aiPrompt && supabaseUrl && supabaseApiKey) {
+                loadAIPrompt();
+              }
+            }}
+          >
+            AI Prompt
           </button>
         </div>
 
@@ -503,6 +635,66 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
                   <div className="export-description">
                     Download all your scripts in CSV format. Includes all script data, parameters, and metadata.
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ai-prompt' && (
+            <div className="settings-section">
+              <div className="settings-field">
+                <label htmlFor="ai-prompt">
+                  AI Script Generator System Prompt
+                  <span className="settings-field-hint">
+                    Customize the system prompt used by the AI Script Generator. This prompt instructs the AI on how to generate scripts. Changes are saved to Supabase.
+                  </span>
+                </label>
+                {aiPromptLoading && !aiPrompt && (
+                  <div className="settings-loading">Loading prompt...</div>
+                )}
+                <textarea
+                  id="ai-prompt"
+                  value={aiPrompt}
+                  onChange={(e) => {
+                    setAiPrompt(e.target.value);
+                    setAiPromptError('');
+                    setAiPromptSuccess(false);
+                  }}
+                  placeholder="Enter the system prompt for AI script generation..."
+                  className="settings-textarea"
+                  rows={20}
+                  disabled={aiPromptLoading}
+                />
+                {aiPromptError && (
+                  <div className="settings-error">{aiPromptError}</div>
+                )}
+                {aiPromptSuccess && (
+                  <div className="settings-success" style={{ color: 'green', marginTop: '8px' }}>
+                    ✓ Prompt saved successfully to Supabase
+                  </div>
+                )}
+                {(!supabaseUrl || !supabaseApiKey) && (
+                  <div className="settings-warning" style={{ marginTop: '8px' }}>
+                    Please configure Supabase URL and API key in the API Keys tab to save the prompt.
+                  </div>
+                )}
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleSaveAIPrompt}
+                    className="settings-btn-primary"
+                    disabled={aiPromptLoading || !supabaseUrl || !supabaseApiKey || !aiPrompt.trim()}
+                  >
+                    {aiPromptLoading ? 'Saving...' : 'Save Prompt to Supabase'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={loadAIPrompt}
+                    className="settings-btn-secondary"
+                    disabled={aiPromptLoading || !supabaseUrl || !supabaseApiKey}
+                  >
+                    Reload from Supabase
+                  </button>
                 </div>
               </div>
             </div>

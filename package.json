@@ -11,9 +11,13 @@
     "dev": "npm run dev --workspace=packages/web",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
+    "test:coverage": "npm run test:coverage --workspace=packages/core && npm run test:coverage --workspace=packages/web",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "lint": "eslint packages/*/src --ext .ts,.tsx"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",

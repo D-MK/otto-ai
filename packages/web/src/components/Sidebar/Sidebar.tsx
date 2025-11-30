@@ -20,6 +20,7 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({ onKeywordClick, onGen
   const { scriptStorage } = useConversationStore();
   const [scripts, setScripts] = useState<Script[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   const loadScripts = () => {
     if (scriptStorage) {
@@ -35,6 +36,29 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({ onKeywordClick, onGen
   useEffect(() => {
     loadScripts();
   }, [scriptStorage]);
+
+  // Filter scripts based on selected tags
+  const filteredScripts = scripts.filter(script => {
+    if (selectedTags.size === 0) return true;
+    return script.tags.some(tag => selectedTags.has(tag));
+  });
+
+  // Get all unique tags from all scripts
+  const allTags = Array.from(new Set(scripts.flatMap(script => script.tags))).sort();
+
+  const toggleTag = (tag: string) => {
+    const newSelectedTags = new Set(selectedTags);
+    if (newSelectedTags.has(tag)) {
+      newSelectedTags.delete(tag);
+    } else {
+      newSelectedTags.add(tag);
+    }
+    setSelectedTags(newSelectedTags);
+  };
+
+  const clearFilters = () => {
+    setSelectedTags(new Set());
+  };
 
   const getKeywordFromTrigger = (trigger: string): string => {
     // Extract the first 2-3 words as keyword
@@ -61,11 +85,37 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({ onKeywordClick, onGen
             ✨ Generate New Script
           </button>
 
+          {allTags.length > 0 && (
+            <div className="tag-filter-section">
+              <div className="tag-filter-header">
+                <span className="filter-label">Filter by tags:</span>
+                {selectedTags.size > 0 && (
+                  <button className="clear-filters-button" onClick={clearFilters}>
+                    Clear ({selectedTags.size})
+                  </button>
+                )}
+              </div>
+              <div className="tag-filters">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    className={`tag-filter-chip ${selectedTags.has(tag) ? 'active' : ''}`}
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="scripts-list">
-            {scripts.length === 0 ? (
-              <div className="no-scripts">No scripts available</div>
+            {filteredScripts.length === 0 ? (
+              <div className="no-scripts">
+                {selectedTags.size > 0 ? 'No scripts match selected tags' : 'No scripts available'}
+              </div>
             ) : (
-              scripts.map((script) => (
+              filteredScripts.map((script) => (
                 <div
                   key={script.id}
                   className="script-item"

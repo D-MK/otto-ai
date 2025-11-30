@@ -115,6 +115,37 @@ The AI generator creates complete scripts with:
 - Parameter definitions with user-friendly prompts
 - Sandboxed JavaScript code
 
+### Customizing the AI Prompt
+
+You can customize the system prompt used by the AI Script Generator to better suit your needs. This allows you to:
+- Adjust the tone and style of generated scripts
+- Add specific guidelines or constraints
+- Include examples relevant to your use case
+- Modify the output format requirements
+
+**To customize the prompt:**
+
+1. Go to **Settings** → **AI Prompt** tab
+2. Edit the system prompt in the textarea
+3. Click **Save Prompt to Supabase** to persist your changes
+4. The custom prompt will be automatically used for all future script generations
+
+**Note:** 
+- Requires Supabase to be configured (URL and API key)
+- The prompt is stored in Supabase in the `ai_config` table
+- If no custom prompt is found, the default prompt is used
+- Changes take effect immediately for new script generations
+
+**Database Setup:**
+
+If you haven't already, run the migration to create the `ai_config` table:
+
+```sql
+-- See migrations/001_create_ai_config_table.sql
+```
+
+Or run it directly in your Supabase SQL editor.
+
 ## Gemini Conversational AI
 
 The app includes a built-in conversational AI powered by Gemini 2.5 Flash for answering questions and having natural discussions.
@@ -264,6 +295,11 @@ npm run build
 
 ## Running Tests
 
+Otto AI uses a comprehensive testing suite with unit tests, integration tests, and E2E tests.
+
+### Unit Tests
+
+**Core Package:**
 ```bash
 cd packages/core
 npm test
@@ -271,6 +307,65 @@ npm test
 # With coverage
 npm run test:coverage
 ```
+
+**Web Package:**
+```bash
+cd packages/web
+npm test
+
+# With coverage
+npm run test:coverage
+
+# Interactive UI
+npm run test:ui
+```
+
+**All Tests:**
+```bash
+# From root directory
+npm test
+
+# With coverage for all packages
+npm run test:coverage
+```
+
+### Integration Tests
+
+Integration tests verify that multiple components work together correctly:
+
+```bash
+cd packages/core
+npm test -- __tests__/intent-router.test.ts
+```
+
+### E2E Tests
+
+End-to-end tests use Playwright to test user journeys:
+
+```bash
+# Install Playwright browsers (first time only)
+npx playwright install
+
+# Run E2E tests
+npm run test:e2e
+
+# Run with UI
+npm run test:e2e:ui
+```
+
+### Test Coverage
+
+The project aims for **80%+ code coverage**. Coverage reports are generated in:
+- `packages/core/coverage/`
+- `packages/web/coverage/`
+
+### CI/CD
+
+Tests run automatically on:
+- Every push to `main` or `develop` branches
+- Every pull request
+
+See `.github/workflows/test.yml` for the CI configuration.
 
 ## Documentation
 

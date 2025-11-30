@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { AIScriptGenerator, AIConfig, AIProvider } from '../../services/aiScriptGenerator';
+import { SupabaseStorageService } from '../../services/supabaseStorage';
 import './AIScriptGenerator.css';
 
 interface AIScriptGeneratorProps {
@@ -13,7 +14,7 @@ interface AIScriptGeneratorProps {
 }
 
 const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose }) => {
-  const { scriptStorage, router } = useConversationStore();
+  const { scriptStorage, router, settings, saveSettings } = useConversationStore();
   const [step, setStep] = useState<'config' | 'generate'>('config');
   const [provider, setProvider] = useState<AIProvider>('gemini');
   const [apiKey, setApiKey] = useState('');
@@ -29,10 +30,15 @@ const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose 
         setProvider(savedConfig.provider);
         setApiKey(savedConfig.apiKey);
         setStep('generate');
+      } else if (settings.geminiApiKey) {
+        // Fall back to settings if no ai_config but geminiApiKey exists
+        setProvider('gemini');
+        setApiKey(settings.geminiApiKey);
+        setStep('generate');
       }
     };
     loadSavedConfig();
-  }, []);
+  }, [settings.geminiApiKey]);
 
   const handleSaveConfig = async () => {
     if (!apiKey.trim()) {
@@ -43,6 +49,15 @@ const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose 
     try {
       const config: AIConfig = { provider, apiKey: apiKey.trim() };
       await AIScriptGenerator.saveConfig(config);
+
+      // Also sync to settings store if provider is Gemini
+      if (provider === 'gemini') {
+        await saveSettings({
+          ...settings,
+          geminiApiKey: apiKey.trim(),
+        });
+      }
+
       setStep('generate');
       setError(null);
     } catch (err) {
@@ -73,8 +88,23 @@ const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose 
         return;
       }
 
+      // Try to load custom prompt from Supabase if configured
+      let customPrompt: string | undefined;
+      if (settings.supabaseUrl && settings.supabaseApiKey) {
+        try {
+          const supabaseStorage = new SupabaseStorageService(settings.supabaseUrl, settings.supabaseApiKey);
+          const aiConfig = await supabaseStorage.getAIConfig('default');
+          if (aiConfig) {
+            customPrompt = aiConfig.systemPrompt;
+          }
+        } catch (err) {
+          // Silently fail - will use default prompt
+          console.warn('Failed to load custom prompt from Supabase, using default:', err);
+        }
+      }
+
       const generator = new AIScriptGenerator(config);
-      const script = await generator.generateScript(description);
+      const script = await generator.generateScript(description, customPrompt);
       setGeneratedScript(script);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate script');

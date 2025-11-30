@@ -21,8 +21,10 @@ interface ChatProps {
 
 const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, onSettingsClick, showDebug = false }, ref) => {
   const [input, setInput] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     setInput: (text: string) => {
@@ -39,6 +41,9 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
     ttsEnabled,
     sendMessage,
     toggleTTS,
+    isAuthenticated,
+    currentUser,
+    logout,
   } = useConversationStore();
 
   const scrollToBottom = () => {
@@ -48,6 +53,22 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
   useEffect(() => {
     scrollToBottom();
   }, [messageHistory]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showUserMenu]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +89,11 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowUserMenu(false);
   };
 
   return (
@@ -97,6 +123,25 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptsClick, onDebugClick, 
           >
             {ttsEnabled ? '🔊' : '🔇'}
           </button>
+          {isAuthenticated && currentUser && (
+            <div className="user-menu-container" ref={userMenuRef}>
+              <button
+                className="user-button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                title={currentUser.email}
+              >
+                👤
+              </button>
+              {showUserMenu && (
+                <div className="user-menu">
+                  <div className="user-menu-email">{currentUser.email}</div>
+                  <button className="user-menu-item" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

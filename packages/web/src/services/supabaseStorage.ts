@@ -18,6 +18,15 @@ export interface Script {
   updatedAt: string;
 }
 
+export interface AIConfig {
+  id: string;
+  systemPrompt: string;
+  geminiModel: string;
+  claudeModel: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class SupabaseStorageService {
   private client: SupabaseClient | null = null;
   private supabaseUrl: string = '';
@@ -190,6 +199,98 @@ export class SupabaseStorageService {
     if (error) {
       throw new Error(`Failed to bulk upsert scripts: ${error.message}`);
     }
+  }
+
+  async getAIConfig(id: string = 'default'): Promise<AIConfig | null> {
+    if (!this.client) {
+      throw new Error('Supabase client not configured');
+    }
+
+    const { data, error } = await this.client
+      .from('ai_config')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      throw new Error(`Failed to fetch AI config: ${error.message}`);
+    }
+
+    return data ? this.mapAIConfigFromSupabase(data) : null;
+  }
+
+  async updateAIConfig(config: Partial<AIConfig> & { id: string }): Promise<AIConfig> {
+    if (!this.client) {
+      throw new Error('Supabase client not configured');
+    }
+
+    const configData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (config.systemPrompt !== undefined) {
+      configData.system_prompt = config.systemPrompt;
+    }
+    if (config.geminiModel !== undefined) {
+      configData.gemini_model = config.geminiModel;
+    }
+    if (config.claudeModel !== undefined) {
+      configData.claude_model = config.claudeModel;
+    }
+
+    const { data, error } = await this.client
+      .from('ai_config')
+      .update(configData)
+      .eq('id', config.id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update AI config: ${error.message}`);
+    }
+
+    return this.mapAIConfigFromSupabase(data);
+  }
+
+  async upsertAIConfig(config: AIConfig): Promise<AIConfig> {
+    if (!this.client) {
+      throw new Error('Supabase client not configured');
+    }
+
+    const configData = {
+      id: config.id,
+      system_prompt: config.systemPrompt,
+      gemini_model: config.geminiModel,
+      claude_model: config.claudeModel,
+      created_at: config.createdAt,
+      updated_at: config.updatedAt,
+    };
+
+    const { data, error } = await this.client
+      .from('ai_config')
+      .upsert(configData, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to upsert AI config: ${error.message}`);
+    }
+
+    return this.mapAIConfigFromSupabase(data);
+  }
+
+  private mapAIConfigFromSupabase(data: any): AIConfig {
+    return {
+      id: data.id,
+      systemPrompt: data.system_prompt,
+      geminiModel: data.gemini_model || 'gemini-2.5-flash',
+      claudeModel: data.claude_model || 'claude-3-5-sonnet-20241022',
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+    };
   }
 
   private mapFromSupabase(data: any): Script {

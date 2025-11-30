@@ -74,16 +74,17 @@ export class AIScriptGenerator {
     this.config = config;
   }
 
-  async generateScript(description: string): Promise<GeneratedScript> {
+  async generateScript(description: string, customPrompt?: string): Promise<GeneratedScript> {
+    const systemPrompt = customPrompt || SYSTEM_PROMPT;
     if (this.config.provider === 'gemini') {
-      return this.generateWithGemini(description);
+      return this.generateWithGemini(description, systemPrompt);
     } else {
-      return this.generateWithClaude(description);
+      return this.generateWithClaude(description, systemPrompt);
     }
   }
 
-  private async generateWithGemini(description: string): Promise<GeneratedScript> {
-    const prompt = `${SYSTEM_PROMPT}\n\nUser request: ${description}`;
+  private async generateWithGemini(description: string, systemPrompt: string): Promise<GeneratedScript> {
+    const prompt = `${systemPrompt}\n\nUser request: ${description}`;
 
     // Initialize the Google GenAI client with the API key
     const ai = new GoogleGenAI({
@@ -115,7 +116,7 @@ export class AIScriptGenerator {
     }
   }
 
-  private async generateWithClaude(description: string): Promise<GeneratedScript> {
+  private async generateWithClaude(description: string, systemPrompt: string): Promise<GeneratedScript> {
     const response = await fetch(CLAUDE_API_URL, {
       method: 'POST',
       headers: {
@@ -129,7 +130,7 @@ export class AIScriptGenerator {
         messages: [
           {
             role: 'user',
-            content: `${SYSTEM_PROMPT}\n\nUser request: ${description}`,
+            content: `${systemPrompt}\n\nUser request: ${description}`,
           },
         ],
       }),

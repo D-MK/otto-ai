@@ -14,6 +14,8 @@ import {
 import { GeminiChatService } from '../services/geminiChat';
 import { EncryptionService } from '../services/encryption';
 import { SyncedScriptStorage } from '../services/syncedScriptStorage';
+import { getAuthService, AuthUser, AuthSession } from '../services/supabaseAuth';
+import { SupabaseSettingsService } from '../services/supabaseSettings';
 import type { SettingsData } from '../components/Settings/Settings';
 
 interface ConversationState extends ConversationContext {
@@ -23,6 +25,11 @@ interface ConversationState extends ConversationContext {
   ttsEnabled: boolean;
   isProcessing: boolean;
   settings: SettingsData;
+
+  // Auth state
+  currentUser: AuthUser | null;
+  isAuthenticated: boolean;
+  authChecked: boolean;
 
   // Actions
   initialize: (dbPath?: string, mcpConfig?: MCPConfig) => void;
@@ -34,6 +41,13 @@ interface ConversationState extends ConversationContext {
   saveSettings: (settings: SettingsData) => Promise<void>;
   getMCPConfigs: () => MCPConfig[];
   reinitializeWithSettings: () => void;
+
+  // Auth actions
+  checkAuthState: () => Promise<void>;
+  handleAuthSuccess: (userId: string, email: string) => Promise<void>;
+  logout: () => Promise<void>;
+  loadUserSettings: (userId: string) => Promise<void>;
+  saveUserSettings: (userId: string, settings: SettingsData) => Promise<void>;
 }
 
 const SETTINGS_STORAGE_KEY = 'otto_settings';
@@ -98,6 +112,7 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
     supabaseUrl: '',
     storageMode: 'localStorage',
     mcpServers: [],
+    scriptSortPreference: 'name-asc',
   };
 };
 
@@ -121,6 +136,7 @@ const initialSettings: SettingsData = {
   supabaseUrl: '',
   storageMode: 'localStorage',
   mcpServers: [],
+  scriptSortPreference: 'name-asc',
 };
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
@@ -132,6 +148,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   ttsEnabled: false,
   isProcessing: false,
   settings: initialSettings,
+  currentUser: null,
+  isAuthenticated: false,
+  authChecked: false,
 
   initialize: (dbPath = ':memory:', mcpConfig) => {
     const { settings } = get();
@@ -299,7 +318,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     set({ settings });
 
     // Update Gemini API key in the geminiChat service
-    const { geminiChat, scriptStorage } = get();
+    const { geminiChat, scriptStorage, isAuthenticated, currentUser } = get();
     if (geminiChat && settings.geminiApiKey) {
       await geminiChat.setApiKey(settings.geminiApiKey);
     }
@@ -307,6 +326,16 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     // Update script storage settings for Supabase sync
     if (scriptStorage && scriptStorage instanceof SyncedScriptStorage) {
       scriptStorage.updateSettings(settings);
+    }
+
+    // If user is authenticated, also save to Supabase
+    if (isAuthenticated && currentUser) {
+      try {
+        await get().saveUserSettings(currentUser.id, settings);
+      } catch (error) {
+        console.error('Failed to sync settings to Supabase:', error);
+        // Don't throw - local settings are still saved
+      }
     }
   },
 
@@ -351,5 +380,132 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       router,
       geminiChat,
     });
+  },
+
+  checkAuthState: async () => {
+    const authService = getAuthService();
+    const { settings } = get();
+
+    // Only check auth if Supabase is configured
+    if (!settings.supabaseUrl || !settings.supabaseApiKey) {
+      set({ authChecked: true, isAuthenticated: false, currentUser: null });
+      return;
+    }
+
+    // Configure auth service
+    if (!authService.isConfigured()) {
+      authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+    }
+
+    try {
+      const session = await authService.getSession();
+      if (session) {
+        set({
+          currentUser: session.user,
+          isAuthenticated: true,
+          authChecked: true,
+        });
+
+        // Load user settings from Supabase
+        await get().loadUserSettings(session.user.id);
+      } else {
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+          authChecked: true,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check auth state:', error);
+      set({
+        currentUser: null,
+        isAuthenticated: false,
+        authChecked: true,
+      });
+    }
+  },
+
+  handleAuthSuccess: async (userId: string, email: string) => {
+    set({
+      currentUser: { id: userId, email, createdAt: new Date().toISOString() },
+      isAuthenticated: true,
+    });
+
+    // Load user settings from Supabase
+    await get().loadUserSettings(userId);
+
+    // Reinitialize with loaded settings
+    get().reinitializeWithSettings();
+  },
+
+  logout: async () => {
+    const authService = getAuthService();
+
+    try {
+      await authService.signOut();
+      set({
+        currentUser: null,
+        isAuthenticated: false,
+      });
+
+      // Clear conversation
+      get().clearConversation();
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  },
+
+  loadUserSettings: async (userId: string) => {
+    const { settings } = get();
+
+    if (!settings.supabaseUrl || !settings.supabaseApiKey) {
+      console.warn('Supabase not configured, cannot load user settings');
+      return;
+    }
+
+    try {
+      const settingsService = new SupabaseSettingsService(
+        settings.supabaseUrl,
+        settings.supabaseApiKey
+      );
+
+      const userSettings = await settingsService.getUserSettings(userId);
+
+      if (userSettings) {
+        // Merge user settings with local settings
+        const mergedSettings = {
+          ...settings,
+          ...userSettings,
+        };
+
+        // Update store and save to localStorage
+        await get().saveSettings(mergedSettings);
+      } else {
+        console.log('No user settings found in Supabase, using local settings');
+      }
+    } catch (error) {
+      console.error('Failed to load user settings:', error);
+    }
+  },
+
+  saveUserSettings: async (userId: string, settings: SettingsData) => {
+    const currentSettings = get().settings;
+
+    if (!currentSettings.supabaseUrl || !currentSettings.supabaseApiKey) {
+      console.warn('Supabase not configured, cannot save user settings');
+      return;
+    }
+
+    try {
+      const settingsService = new SupabaseSettingsService(
+        currentSettings.supabaseUrl,
+        currentSettings.supabaseApiKey
+      );
+
+      await settingsService.saveUserSettings(userId, settings);
+    } catch (error) {
+      console.error('Failed to save user settings to Supabase:', error);
+      throw error;
+    }
   },
 }));

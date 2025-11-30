@@ -273,6 +273,9 @@ The deployment includes:
 - Static file server for the React app
 - Automatic HTTPS via Fly.io
 - Auto-scaling (machines start/stop based on traffic)
+- Health checks for improved reliability
+- Request concurrency limits for better performance
+- Graceful shutdown handling
 
 **Environment Variables:**
 If you need to set environment variables for the build process (e.g., Vite environment variables), you can set them in Fly.io:

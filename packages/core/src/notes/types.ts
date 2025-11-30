@@ -68,6 +68,7 @@ export interface CreateNoteParams {
 export interface UpdateNoteParams {
   title?: string;
   content?: string;
+  summary?: string;
   tags?: string[];
   linkedNoteIds?: string[];
   linkedScriptIds?: string[];

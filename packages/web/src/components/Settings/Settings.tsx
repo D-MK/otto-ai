@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EncryptionService } from '../../services/encryption';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
+import { ThemeService, ThemePreset } from '../../services/themeService';
 import './Settings.css';
 
 export interface MCPServerConfig {
@@ -21,6 +22,7 @@ export interface SettingsData {
   mcpServers: MCPServerConfig[];
   storageMode: StorageMode;
   scriptSortPreference?: ScriptSortPreference;
+  theme?: ThemePreset;
 }
 
 interface SettingsProps {
@@ -41,7 +43,8 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
     JSON.stringify(settings.mcpServers, null, 2)
   );
   const [jsonError, setJsonError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt'>('api-keys');
+  const [activeTab, setActiveTab] = useState<'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' | 'appearance'>('api-keys');
+  const [theme, setTheme] = useState<ThemePreset>((settings as any).theme || 'light');
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string>('');
@@ -60,6 +63,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
     setMcpServersJson(JSON.stringify(settings.mcpServers, null, 2));
     setJsonError('');
     setHasPassword(EncryptionService.hasMasterPassword());
+    setTheme((settings as any).theme || 'light');
     
     // Load AI prompt from Supabase when opening settings
     if (isOpen && activeTab === 'ai-prompt') {
@@ -297,7 +301,12 @@ Return ONLY the JSON object, no additional text or explanation.`;
       supabaseUrl,
       storageMode,
       mcpServers,
-    });
+      theme,
+    } as SettingsData);
+    
+    // Apply theme immediately
+    ThemeService.saveTheme(theme);
+    
     onClose();
   };
 
@@ -372,6 +381,12 @@ Return ONLY the JSON object, no additional text or explanation.`;
             }}
           >
             AI Prompt
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'appearance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('appearance')}
+          >
+            Appearance
           </button>
         </div>
 
@@ -695,6 +710,48 @@ Return ONLY the JSON object, no additional text or explanation.`;
                   >
                     Reload from Supabase
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'appearance' && (
+            <div className="settings-section">
+              <div className="settings-field">
+                <label htmlFor="theme-selector">
+                  Color Theme
+                  <span className="settings-field-hint">
+                    Choose a color theme for the application. The theme is applied immediately and saved to your settings.
+                  </span>
+                </label>
+                <div className="theme-selector">
+                  {(['light', 'dark', 'blue', 'green', 'purple'] as ThemePreset[]).map((themeOption) => (
+                    <button
+                      key={themeOption}
+                      type="button"
+                      className={`theme-option ${theme === themeOption ? 'active' : ''}`}
+                      onClick={() => {
+                        setTheme(themeOption);
+                        ThemeService.applyTheme(themeOption);
+                      }}
+                      style={{
+                        textTransform: 'capitalize',
+                        padding: '12px 24px',
+                        margin: '4px',
+                        border: `2px solid ${theme === themeOption ? 'var(--accent-color)' : 'var(--border-color)'}`,
+                        borderRadius: '8px',
+                        background: theme === themeOption ? 'var(--accent-color)' : 'var(--bg-primary)',
+                        color: theme === themeOption ? 'white' : 'var(--text-primary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {themeOption}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ marginTop: '16px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                  <p>Theme preview is applied immediately. Click "Save" to persist your preference.</p>
                 </div>
               </div>
             </div>

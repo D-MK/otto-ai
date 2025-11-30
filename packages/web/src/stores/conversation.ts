@@ -10,6 +10,13 @@ import {
   BrowserScriptStorage,
   MCPClient,
   MCPConfig,
+  Note,
+  LocalNoteStorage,
+  NoteStorage,
+  CreateNoteParams,
+  UpdateNoteParams,
+  AIGenerationResult,
+  createNoteAIGenerator,
 } from '@otto-ai/core';
 import { GeminiChatService } from '../services/geminiChat';
 import { EncryptionService } from '../services/encryption';
@@ -26,6 +33,11 @@ interface ConversationState extends ConversationContext {
   isProcessing: boolean;
   settings: SettingsData;
 
+  // Notes state
+  noteStorage: NoteStorage | null;
+  notes: Note[];
+  scripts: any[]; // From scriptStorage
+
   // Auth state
   currentUser: AuthUser | null;
   isAuthenticated: boolean;
@@ -41,6 +53,13 @@ interface ConversationState extends ConversationContext {
   saveSettings: (settings: SettingsData) => Promise<void>;
   getMCPConfigs: () => MCPConfig[];
   reinitializeWithSettings: () => void;
+
+  // Notes actions
+  loadNotes: () => void;
+  createNote: (params: CreateNoteParams) => void;
+  updateNote: (id: string, params: UpdateNoteParams) => void;
+  deleteNote: (id: string) => void;
+  generateNoteTitleAndSummary: (content: string) => Promise<AIGenerationResult>;
 
   // Auth actions
   checkAuthState: () => Promise<void>;
@@ -148,6 +167,9 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   ttsEnabled: false,
   isProcessing: false,
   settings: initialSettings,
+  noteStorage: null,
+  notes: [],
+  scripts: [],
   currentUser: null,
   isAuthenticated: false,
   authChecked: false,
@@ -158,11 +180,19 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const mcpClient = mcpConfig ? new MCPClient(mcpConfig) : null;
     const router = new IntentRouter(scriptStorage, mcpClient);
     const geminiChat = new GeminiChatService();
+    const noteStorage = new LocalNoteStorage();
+
+    // Load scripts and notes
+    const scripts = scriptStorage.getAll();
+    const notes = noteStorage.getAll();
 
     set({
       scriptStorage,
       router,
       geminiChat,
+      noteStorage,
+      scripts,
+      notes,
     });
   },
 
@@ -367,6 +397,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const mcpClient = mcpClients.length > 0 ? mcpClients[0] : null;
     const router = new IntentRouter(scriptStorage, mcpClient);
     const geminiChat = new GeminiChatService();
+    const noteStorage = new LocalNoteStorage();
 
     // Set the Gemini API key if available
     if (settings.geminiApiKey) {
@@ -375,11 +406,107 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       });
     }
 
+    // Load scripts and notes
+    const scripts = scriptStorage.getAll();
+    const notes = noteStorage.getAll();
+
     set({
       scriptStorage,
       router,
       geminiChat,
+      noteStorage,
+      scripts,
+      notes,
     });
+  },
+
+  // Notes actions
+  loadNotes: () => {
+    const { noteStorage, scriptStorage } = get();
+    if (noteStorage) {
+      const notes = noteStorage.getAll();
+      const scripts = scriptStorage ? scriptStorage.getAll() : [];
+      set({ notes, scripts });
+    }
+  },
+
+  createNote: async (params: CreateNoteParams): Promise<Note | undefined> => {
+    const { noteStorage, geminiChat, settings } = get();
+    if (!noteStorage) return undefined;
+
+    // If title or summary not provided, auto-generate them
+    let finalParams = { ...params };
+
+    if (!params.title) {
+      // Generate title and summary using AI if geminiChat is available
+      if (geminiChat && settings.geminiApiKey) {
+        try {
+          const aiGenerator = createNoteAIGenerator(
+            settings.geminiApiKey,
+            geminiChat.getModel()
+          );
+          const result = await aiGenerator.generateTitleAndSummary(params.content);
+          finalParams.title = result.title;
+          finalParams.summary = result.summary;
+        } catch (error) {
+          console.error('Failed to generate title with AI:', error);
+          // Fallback to first line
+          finalParams.title = params.content.split('\n')[0].substring(0, 60) || 'Untitled Note';
+        }
+      } else {
+        // Fallback to first line
+        finalParams.title = params.content.split('\n')[0].substring(0, 60) || 'Untitled Note';
+      }
+    }
+
+    const note = noteStorage.create(finalParams);
+    get().loadNotes();
+    return note;
+  },
+
+  updateNote: (id: string, params: UpdateNoteParams) => {
+    const { noteStorage } = get();
+    if (!noteStorage) return;
+
+    noteStorage.update(id, params);
+    get().loadNotes();
+  },
+
+  deleteNote: (id: string) => {
+    const { noteStorage } = get();
+    if (!noteStorage) return;
+
+    noteStorage.delete(id);
+    get().loadNotes();
+  },
+
+  generateNoteTitleAndSummary: async (content: string): Promise<AIGenerationResult> => {
+    const { geminiChat, settings } = get();
+
+    if (!geminiChat || !settings.geminiApiKey) {
+      // Fallback: generate simple title and summary
+      const firstLine = content.split('\n')[0].trim();
+      const title = firstLine.substring(0, 60) || 'Untitled Note';
+      const firstSentence = content.split(/[.!?]\s/)[0].trim();
+      const summary = firstSentence.substring(0, 150);
+      return { title, summary };
+    }
+
+    try {
+      const aiGenerator = createNoteAIGenerator(
+        settings.geminiApiKey,
+        geminiChat.getModel()
+      );
+      return await aiGenerator.generateTitleAndSummary(content);
+    } catch (error) {
+      console.error('Failed to generate title and summary:', error);
+      // Fallback
+      const firstLine = content.split('\n')[0].trim();
+      const title = firstLine.substring(0, 60) || 'Untitled Note';
+      const firstSentence = content.split(/[.!?]\s/)[0].trim();
+      const summary = firstSentence.substring(0, 150);
+      return { title, summary };
+    }
   },
 
   checkAuthState: async () => {

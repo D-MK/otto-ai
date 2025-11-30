@@ -18,3 +18,10 @@ export type { RouterResponse } from './intent/router';
 // MCP client
 export * from './mcp/config';
 export { MCPClient } from './mcp/client';
+
+// Notes
+export * from './notes/types';
+export { LocalNoteStorage } from './notes/storage';
+export type { NoteStorage } from './notes/storage';
+export { createNoteAIGenerator } from './notes/ai-generator';
+export type { AIGenerator } from './notes/ai-generator';

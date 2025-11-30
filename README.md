@@ -15,12 +15,15 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 - **Parameter Collection**: Conversational parameter gathering across multiple turns
 - **Text-to-Speech**: Optional TTS for bot responses
 - **Debug Mode**: Detailed intent classification and execution information
+- **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
+- **Notes System**: Full-featured note-taking with AI-powered title/summary generation
+- **Custom Themes**: Choose from 5 color themes (Light, Dark, Blue, Green, Purple) with instant preview
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 20+ and npm
 
 ### Installation
 
@@ -366,6 +369,27 @@ Tests run automatically on:
 - Every pull request
 
 See `.github/workflows/test.yml` for the CI configuration.
+
+## Customization
+
+### Color Themes
+
+Otto AI includes 5 built-in color themes that you can switch between:
+
+- **Light**: Clean, bright default theme
+- **Dark**: Dark mode for low-light environments
+- **Blue**: Cool blue color scheme
+- **Green**: Natural green color scheme
+- **Purple**: Vibrant purple color scheme
+
+**To change themes:**
+1. Open Settings (click the settings icon)
+2. Go to the "Appearance" tab
+3. Select your preferred theme
+4. The theme is applied immediately
+5. Click "Save" to persist your preference
+
+Themes are stored in your browser's localStorage and persist across sessions.
 
 ## Documentation
 

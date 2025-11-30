@@ -58,8 +58,13 @@ export class LocalNoteStorage implements NoteStorage {
   }
 
   private loadFromStorage(): void {
+    const globalThis = this.getGlobalThis();
+    if (!globalThis || !globalThis.localStorage) {
+      return;
+    }
+
     try {
-      const stored = localStorage.getItem(this.storageKey);
+      const stored = globalThis.localStorage.getItem(this.storageKey);
       if (stored) {
         const parsed = JSON.parse(stored);
         this.notes = new Map(
@@ -79,12 +84,30 @@ export class LocalNoteStorage implements NoteStorage {
   }
 
   private saveToStorage(): void {
+    const globalThis = this.getGlobalThis();
+    if (!globalThis || !globalThis.localStorage) {
+      return;
+    }
+
     try {
       const notesArray = Array.from(this.notes.values());
-      localStorage.setItem(this.storageKey, JSON.stringify(notesArray));
+      globalThis.localStorage.setItem(this.storageKey, JSON.stringify(notesArray));
     } catch (error) {
       console.error('Failed to save notes to storage:', error);
     }
+  }
+
+  private getGlobalThis(): any {
+    // Check for browser environment
+    if (typeof (globalThis as any)?.window !== 'undefined') {
+      return (globalThis as any).window;
+    }
+    // Check for Node environment
+    if (typeof (globalThis as any)?.global !== 'undefined') {
+      return (globalThis as any).global;
+    }
+    // Fallback to globalThis
+    return globalThis as any;
   }
 
   private generateId(): string {

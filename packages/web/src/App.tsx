@@ -9,6 +9,7 @@ import { useConversationStore } from './stores/conversation';
 import { SupabaseStorageService } from './services/supabaseStorage';
 import { SyncService, SyncResult, ConflictResolution } from './services/syncService';
 import { CSVExportService } from './services/csvExport';
+import { ThemeService } from './services/themeService';
 import './App.css';
 
 // Lazy load conditional components to improve initial load time
@@ -18,6 +19,8 @@ const AIScriptGenerator = React.lazy(() => import('./components/AIScriptGenerato
 const Settings = React.lazy(() => import('./components/Settings/Settings').then(m => ({ default: m.Settings })));
 const ConflictResolver = React.lazy(() => import('./components/ConflictResolver/ConflictResolver').then(m => ({ default: m.ConflictResolver })));
 const Auth = React.lazy(() => import('./components/Auth/Auth'));
+const Notes = React.lazy(() => import('./components/Notes/Notes'));
+import TabContainer, { TabType } from './components/TabContainer/TabContainer';
 
 // Load seed scripts
 import seedScripts from '../../../seed-data/scripts.json';
@@ -38,7 +41,7 @@ const App: React.FC = () => {
     authChecked,
     currentUser,
   } = useConversationStore();
-  const [showEditor, setShowEditor] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('chat');
   const [showDebug, setShowDebug] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -48,6 +51,11 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const chatRef = useRef<ChatHandle>(null);
   const sidebarRef = useRef<SidebarHandle>(null);
+
+  // Initialize theme on app load
+  useEffect(() => {
+    ThemeService.initializeTheme();
+  }, []);
 
   // Load settings asynchronously without blocking initialization
   useEffect(() => {
@@ -60,6 +68,11 @@ const App: React.FC = () => {
           // Reinitialize with loaded settings
           const { reinitializeWithSettings } = useConversationStore.getState();
           reinitializeWithSettings();
+        }
+
+        // Apply theme from settings if available
+        if ((loadedSettings as any).theme) {
+          ThemeService.applyTheme((loadedSettings as any).theme);
         }
 
         // Check auth state after settings are loaded
@@ -256,23 +269,33 @@ const App: React.FC = () => {
           onKeywordClick={handleKeywordClick}
           onGenerateClick={handleGenerateClick}
         />
-        <Chat
-          ref={chatRef}
-          onScriptsClick={() => setShowEditor(true)}
-          onDebugClick={DEBUG_MODE ? () => setShowDebug(!showDebug) : undefined}
-          onSettingsClick={() => setShowSettings(true)}
-          showDebug={showDebug}
-        />
+        <TabContainer activeTab={activeTab} onTabChange={setActiveTab}>
+          {activeTab === 'chat' && (
+            <Chat
+              ref={chatRef}
+              onScriptsClick={() => setActiveTab('scripts')}
+              onNotesClick={() => setActiveTab('notes')}
+              onDebugClick={DEBUG_MODE ? () => setShowDebug(!showDebug) : undefined}
+              onSettingsClick={() => setShowSettings(true)}
+              showDebug={showDebug}
+            />
+          )}
+          {activeTab === 'scripts' && (
+            <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading scripts...</div></div>}>
+              <ScriptEditor
+                onClose={() => setActiveTab('chat')}
+                onScriptSaved={() => sidebarRef.current?.refresh()}
+              />
+            </Suspense>
+          )}
+          {activeTab === 'notes' && (
+            <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading notes...</div></div>}>
+              <Notes onClose={() => setActiveTab('chat')} />
+            </Suspense>
+          )}
+        </TabContainer>
       </div>
 
-      {showEditor && (
-        <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading editor...</div></div>}>
-          <ScriptEditor
-            onClose={() => setShowEditor(false)}
-            onScriptSaved={() => sidebarRef.current?.refresh()}
-          />
-        </Suspense>
-      )}
       {showAIGenerator && (
         <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading AI generator...</div></div>}>
           <AIScriptGenerator onClose={handleAIGeneratorClose} />

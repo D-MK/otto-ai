@@ -40,7 +40,46 @@ User generates script → Network fails → Script lost forever
 
 ---
 
-### 3. Script Execution History
+### 3. Notes & Knowledge Management ⭐ **NEW FEATURE**
+
+**What's Missing:**
+- No ability to capture and organize notes
+- No knowledge base for saving important information
+- No way to document scripts or conversations
+- No linking between related information
+
+**Impact:** Users lose context and important information from conversations
+
+**Proposed Features:**
+```typescript
+interface Note {
+  id: string;
+  title: string; // Auto-generated using Gemini
+  content: string;
+  summary: string; // Auto-generated using Gemini
+  tags: string[];
+  linkedNoteIds: string[]; // Link notes to each other
+  linkedScriptIds: string[];
+  isPinned: boolean;
+  color?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+**Key Capabilities:**
+- AI-generated titles and summaries for quick scanning
+- Bi-directional linking between notes
+- Tag-based organization with multi-tag filtering
+- Search across all note content
+- Quick capture from conversations
+- Link notes to scripts for documentation
+- Pin important notes
+- Export to Markdown/JSON
+
+---
+
+### 4. Script Execution History
 
 **What's Missing:**
 - No log of past executions

@@ -135,7 +135,6 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       const createdNote = await createNote({
         content,
         title: finalTitle,
-        summary: finalSummary,
         tags: tagArray,
         color,
         isPinned,
@@ -143,8 +142,19 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
         linkedNoteIds,
       });
       
-      // Pass the created note directly to onSave
-      onSave(createdNote || undefined);
+      // Update note with summary if provided
+      if (createdNote && finalSummary) {
+        updateNote(createdNote.id, { summary: finalSummary });
+        const updatedNote = noteStorage?.get(createdNote.id);
+        if (updatedNote) {
+          onSave(updatedNote);
+        } else {
+          onSave(createdNote);
+        }
+      } else {
+        // Pass the created note directly to onSave
+        onSave(createdNote || undefined);
+      }
     }
   };
 

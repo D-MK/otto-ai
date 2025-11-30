@@ -1122,7 +1122,6 @@ Return ONLY the JSON object, no additional text or explanation.`;
                       <button
                         type="button"
                         onClick={() => {
-                          const lightTheme = ThemeService.getCurrentThemeColors();
                           // Get light preset colors
                           const lightPreset = {
                             bgPrimary: '#ffffff',

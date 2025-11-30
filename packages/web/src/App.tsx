@@ -38,11 +38,9 @@ const App: React.FC = () => {
     settings,
     saveSettings,
     reinitializeWithSettings,
-    checkAuthState,
     handleAuthSuccess,
     isAuthenticated,
     authChecked,
-    currentUser,
   } = useConversationStore();
   const [activeTab, setActiveTab] = useState<TabType>('chat');
   const [showDebug, setShowDebug] = useState(false);

@@ -7,6 +7,7 @@ import React from 'react';
 interface IconProps {
   className?: string;
   size?: number;
+  style?: React.CSSProperties;
 }
 
 export const ChatIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
@@ -73,7 +74,7 @@ export const NotesIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   </svg>
 );
 
-export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20 }) => {
+export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20, style }) => {
   return (
     <svg
       width={size}
@@ -85,6 +86,7 @@ export const MagicWandIcon: React.FC<IconProps> = ({ className, size = 20 }) => 
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
+      style={style}
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Head shape (angular) */}

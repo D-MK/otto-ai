@@ -14,10 +14,8 @@ interface ScriptEditorProps {
   onScriptChange?: (script: Script | null) => void;
 }
 
-type SortOption = 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc';
-
-const ScriptEditor: React.FC<ScriptEditorProps> = ({ onClose, onScriptSaved, selectedScript: propSelectedScript, onScriptChange }) => {
-  const { scriptStorage, router, settings, saveSettings } = useConversationStore();
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScript: propSelectedScript, onScriptChange }) => {
+  const { scriptStorage, router } = useConversationStore();
   const [selectedScript, setSelectedScript] = useState<Script | null>(propSelectedScript || null);
   const [isEditing, setIsEditing] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);

@@ -2,7 +2,7 @@
  * Supabase Authentication Service
  */
 
-import { createClient, SupabaseClient, User, Session, AuthError } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, AuthError } from '@supabase/supabase-js';
 
 export interface AuthUser {
   id: string;
@@ -172,7 +172,7 @@ export class SupabaseAuthService {
       return () => {};
     }
 
-    const { data } = this.client.auth.onAuthStateChange((event, session) => {
+    const { data } = this.client.auth.onAuthStateChange((_event, session) => {
       if (session) {
         callback({
           user: {

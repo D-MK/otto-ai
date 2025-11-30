@@ -49,7 +49,7 @@ async function deriveKeyFromPassword(password: string, salt: Uint8Array): Promis
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: salt as BufferSource,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },
@@ -80,7 +80,7 @@ async function deriveKeyFromFingerprint(fingerprint: string, salt: Uint8Array): 
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: salt as BufferSource,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },
@@ -179,7 +179,7 @@ export class EncryptionService {
     const ciphertext = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: iv,
+        iv: iv as BufferSource,
       },
       key,
       plaintextBytes
@@ -214,7 +214,7 @@ export class EncryptionService {
       const plaintextBytes = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: iv,
+          iv: iv as BufferSource,
         },
         key,
         ciphertextBytes
@@ -241,7 +241,7 @@ export class EncryptionService {
     const ciphertext = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
-        iv: iv,
+        iv: iv as BufferSource,
       },
       key,
       plaintextBytes
@@ -277,7 +277,7 @@ export class EncryptionService {
       const plaintextBytes = await crypto.subtle.decrypt(
         {
           name: 'AES-GCM',
-          iv: iv,
+          iv: iv as BufferSource,
         },
         key,
         ciphertextBytes

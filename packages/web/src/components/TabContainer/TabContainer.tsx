@@ -2,7 +2,7 @@
  * TabContainer component - provides tabbed interface for Chat, Scripts, and Notes
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import './TabContainer.css';
 
 export type TabType = 'chat' | 'scripts' | 'notes';

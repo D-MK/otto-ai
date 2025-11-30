@@ -16,7 +16,7 @@ interface ChatProps {
   // Props removed - header moved to AppHeader component
 }
 
-const Chat = forwardRef<ChatHandle, ChatProps>(({ onDebugClick, onSettingsClick, showDebug = false }, ref) => {
+const Chat = forwardRef<ChatHandle, ChatProps>(({}, ref) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

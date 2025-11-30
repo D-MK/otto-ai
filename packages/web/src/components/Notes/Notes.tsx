@@ -15,7 +15,7 @@ interface NotesProps {
   onNoteSaved?: () => void;
 }
 
-const Notes: React.FC<NotesProps> = ({ onClose, selectedNote: propSelectedNote, onNoteChange, onNoteSaved }) => {
+const Notes: React.FC<NotesProps> = ({ selectedNote: propSelectedNote, onNoteChange, onNoteSaved }) => {
   const { noteStorage, loadNotes } = useConversationStore();
   const [selectedNote, setSelectedNote] = useState<Note | null>(propSelectedNote || null);
   const [isEditing, setIsEditing] = useState(false);

@@ -7,7 +7,6 @@ import { useConversationStore } from '../../stores/conversation';
 import { Script, Note, NoteFilter, NoteSortOption } from '@otto-ai/core';
 import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon } from '../Icons/Icons';
 import { TabType } from '../TabContainer/TabContainer';
-import { OttoLogo } from '../OttoLogo/OttoLogo';
 import NoteList from '../Notes/NoteList';
 import './Sidebar.css';
 
@@ -41,7 +40,6 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
 }, ref) => {
   const { scriptStorage, noteStorage, settings, saveSettings, loadNotes } = useConversationStore();
   const [scripts, setScripts] = useState<Script[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   // Chat tab - scripts list state
@@ -73,8 +71,6 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
   const loadNotesData = () => {
     if (noteStorage) {
       loadNotes();
-      const loadedNotes = noteStorage.getAll();
-      setNotes(loadedNotes);
     }
   };
 

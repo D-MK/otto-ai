@@ -21,7 +21,7 @@ import {
 import { GeminiChatService } from '../services/geminiChat';
 import { EncryptionService } from '../services/encryption';
 import { SyncedScriptStorage } from '../services/syncedScriptStorage';
-import { getAuthService, AuthUser, AuthSession } from '../services/supabaseAuth';
+import { getAuthService, AuthUser } from '../services/supabaseAuth';
 import { SupabaseSettingsService } from '../services/supabaseSettings';
 import type { SettingsData } from '../components/Settings/Settings';
 
@@ -437,6 +437,8 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     // If title or summary not provided, auto-generate them
     let finalParams = { ...params };
 
+    let summaryToSet: string | undefined;
+    
     if (!params.title) {
       // Generate title and summary using AI if geminiChat is available
       if (geminiChat && settings.geminiApiKey) {
@@ -447,7 +449,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
           );
           const result = await aiGenerator.generateTitleAndSummary(params.content);
           finalParams.title = result.title;
-          finalParams.summary = result.summary;
+          summaryToSet = result.summary;
         } catch (error) {
           console.error('Failed to generate title with AI:', error);
           // Fallback to first line
@@ -459,7 +461,18 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       }
     }
 
-    const note = noteStorage.create(finalParams);
+    // Remove summary from finalParams as CreateNoteParams doesn't include it
+    const { summary: _, ...createParams } = finalParams as any;
+    const note = noteStorage.create(createParams);
+    
+    // Update note with summary if generated
+    if (summaryToSet) {
+      noteStorage.update(note.id, { summary: summaryToSet });
+      const updatedNote = noteStorage.get(note.id);
+      get().loadNotes();
+      return updatedNote;
+    }
+    
     get().loadNotes();
     return note;
   },

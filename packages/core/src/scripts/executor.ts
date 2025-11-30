@@ -85,9 +85,16 @@ export class ScriptExecutor {
 
   /**
    * Execute code in a sandboxed context with timeout
-   * Note: This is a basic sandbox. For production, consider using vm2 or isolated-vm
+   * SECURITY: Enhanced sandboxing to prevent access to dangerous globals
+   * Note: This is still not perfect - for production, consider using Web Workers or server-side execution
    */
   private async executeSandboxed(code: string, params: Record<string, any>): Promise<any> {
+    // First validate the code
+    const validation = this.validateCode(code);
+    if (!validation.valid) {
+      throw new Error(`Code validation failed: ${validation.errors.join(', ')}`);
+    }
+
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Execution timeout'));
@@ -95,24 +102,52 @@ export class ScriptExecutor {
 
       try {
         // Create a sandboxed function with limited access
-        // Only provide safe globals and the params
+        // SECURITY: Explicitly provide only safe globals, prevent access to globalThis
+        const paramNames = Object.keys(params);
+        const paramValues = paramNames.map(name => params[name]);
+        
+        // Create isolated scope without access to globalThis, window, document, etc.
         const sandboxedFunction = new Function(
-          'params',
+          ...paramNames,
           `
           'use strict';
-          const { ${Object.keys(params).join(', ')} } = params;
-
-          // Safe globals
-          const Math = globalThis.Math;
-          const Date = globalThis.Date;
-          const JSON = globalThis.JSON;
-          const console = { log: () => {} }; // No-op console
+          
+          // Only provide safe, isolated globals
+          const Math = {
+            abs: Math.abs,
+            ceil: Math.ceil,
+            floor: Math.floor,
+            max: Math.max,
+            min: Math.min,
+            pow: Math.pow,
+            round: Math.round,
+            sqrt: Math.sqrt,
+            PI: Math.PI,
+            E: Math.E,
+          };
+          
+          const Date = {
+            now: () => Date.now(),
+          };
+          
+          const JSON = {
+            parse: JSON.parse,
+            stringify: JSON.stringify,
+          };
+          
+          // No-op console to prevent information leakage
+          const console = { 
+            log: () => {},
+            error: () => {},
+            warn: () => {},
+            info: () => {},
+          };
 
           ${code}
           `
         );
 
-        const result = sandboxedFunction(params);
+        const result = sandboxedFunction(...paramValues);
         clearTimeout(timeout);
         resolve(result);
       } catch (error) {
@@ -124,6 +159,7 @@ export class ScriptExecutor {
 
   /**
    * Validate script code for basic security issues
+   * Enhanced validation to prevent access to dangerous globals
    */
   validateCode(code: string): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
@@ -140,6 +176,24 @@ export class ScriptExecutor {
       /__filename/,
       /fs\./,
       /child_process/,
+      // Prevent access to browser globals
+      /\bglobalThis\b/,
+      /\bwindow\b/,
+      /\bdocument\b/,
+      /\blocalStorage\b/,
+      /\bsessionStorage\b/,
+      /\bfetch\b/,
+      /\bXMLHttpRequest\b/,
+      /\bWebSocket\b/,
+      /\bWorker\b/,
+      /\bimportScripts\b/,
+      // Prevent prototype manipulation
+      /\.__proto__/,
+      /\.constructor\s*\./,
+      /Object\.(defineProperty|getOwnPropertyDescriptor)/,
+      // Prevent reflection
+      /\bReflect\b/,
+      /\bProxy\b/,
     ];
 
     for (const pattern of dangerousPatterns) {

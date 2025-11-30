@@ -3,6 +3,7 @@
  */
 
 import { create } from 'zustand';
+import { logger } from '../utils/logger';
 import {
   Message,
   ConversationContext,
@@ -84,10 +85,10 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
           if (decrypted === null) {
             // Check if it's password-encrypted and password is not set
             if (EncryptionService.isPasswordEncrypted(settings.geminiApiKey) && !EncryptionService.hasMasterPassword()) {
-              console.warn('Password-encrypted key found but no password set. User needs to enter password.');
+              logger.warn('Password-encrypted key found but no password set. User needs to enter password.');
               settings.geminiApiKey = ''; // Clear to prompt for re-entry
             } else {
-              console.warn('Failed to decrypt geminiApiKey. Device characteristics may have changed or password is incorrect.');
+              logger.warn('Failed to decrypt geminiApiKey. Device characteristics may have changed or password is incorrect.');
               settings.geminiApiKey = ''; // Clear invalid key
             }
           } else {
@@ -108,7 +109,7 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
         const decrypted = await EncryptionService.decrypt(settings.supabaseApiKey);
         if (decrypted === null) {
           if (EncryptionService.isPasswordEncrypted(settings.supabaseApiKey) && !EncryptionService.hasMasterPassword()) {
-            console.warn('Password-encrypted Supabase key found but no password set.');
+            logger.warn('Password-encrypted Supabase key found but no password set.');
             settings.supabaseApiKey = '';
           } else {
             settings.supabaseApiKey = '';
@@ -121,7 +122,7 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
       return settings;
     }
   } catch (error) {
-    console.error('Error loading settings from localStorage:', error);
+    logger.error('Error loading settings from localStorage:', error);
   }
 
   // Default settings
@@ -144,7 +145,7 @@ const saveSettingsToStorage = async (settings: SettingsData): Promise<void> => {
     }
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settingsToSave));
   } catch (error) {
-    console.error('Error saving settings to localStorage:', error);
+    logger.error('Error saving settings to localStorage:', error);
   }
 };
 
@@ -200,7 +201,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const { router, messageHistory, activeScriptContext, ttsEnabled, geminiChat } = get();
 
     if (!router) {
-      console.error('Router not initialized');
+      logger.error('Router not initialized');
       return;
     }
 
@@ -306,7 +307,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
         window.speechSynthesis.speak(utterance);
       }
     } catch (error) {
-      console.error('Error processing message:', error);
+      logger.error('Error processing message:', error);
 
       const errorMessage: Message = {
         id: crypto.randomUUID(),
@@ -363,7 +364,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       try {
         await get().saveUserSettings(currentUser.id, settings);
       } catch (error) {
-        console.error('Failed to sync settings to Supabase:', error);
+        logger.error('Failed to sync settings to Supabase:', error);
         // Don't throw - local settings are still saved
       }
     }
@@ -402,7 +403,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     // Set the Gemini API key if available
     if (settings.geminiApiKey) {
       geminiChat.setApiKey(settings.geminiApiKey).catch((err) => {
-        console.error('Failed to set Gemini API key:', err);
+        logger.error('Failed to set Gemini API key:', err);
       });
     }
 
@@ -451,7 +452,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
           finalParams.title = result.title;
           summaryToSet = result.summary;
         } catch (error) {
-          console.error('Failed to generate title with AI:', error);
+          logger.error('Failed to generate title with AI:', error);
           // Fallback to first line
           finalParams.title = params.content.split('\n')[0].substring(0, 60) || 'Untitled Note';
         }
@@ -512,7 +513,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       );
       return await aiGenerator.generateTitleAndSummary(content);
     } catch (error) {
-      console.error('Failed to generate title and summary:', error);
+      logger.error('Failed to generate title and summary:', error);
       // Fallback
       const firstLine = content.split('\n')[0].trim();
       const title = firstLine.substring(0, 60) || 'Untitled Note';
@@ -556,7 +557,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('Failed to check auth state:', error);
+      logger.error('Failed to check auth state:', error);
       set({
         currentUser: null,
         isAuthenticated: false,
@@ -591,7 +592,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       // Clear conversation
       get().clearConversation();
     } catch (error) {
-      console.error('Failed to logout:', error);
+      logger.error('Failed to logout:', error);
     }
   },
 
@@ -599,7 +600,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const { settings } = get();
 
     if (!settings.supabaseUrl || !settings.supabaseApiKey) {
-      console.warn('Supabase not configured, cannot load user settings');
+      logger.warn('Supabase not configured, cannot load user settings');
       return;
     }
 
@@ -621,10 +622,10 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
         // Update store and save to localStorage
         await get().saveSettings(mergedSettings);
       } else {
-        console.log('No user settings found in Supabase, using local settings');
+        logger.log('No user settings found in Supabase, using local settings');
       }
     } catch (error) {
-      console.error('Failed to load user settings:', error);
+      logger.error('Failed to load user settings:', error);
     }
   },
 
@@ -632,7 +633,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
     const currentSettings = get().settings;
 
     if (!currentSettings.supabaseUrl || !currentSettings.supabaseApiKey) {
-      console.warn('Supabase not configured, cannot save user settings');
+      logger.warn('Supabase not configured, cannot save user settings');
       return;
     }
 
@@ -644,7 +645,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
       await settingsService.saveUserSettings(userId, settings);
     } catch (error) {
-      console.error('Failed to save user settings to Supabase:', error);
+      logger.error('Failed to save user settings to Supabase:', error);
       throw error;
     }
   },

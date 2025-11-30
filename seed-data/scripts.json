@@ -93,28 +93,6 @@
     "code": "const blockersText = blockers && blockers.toLowerCase() !== 'none' \n  ? `\\n\\n**Blockers:** ${blockers}` \n  : '';\n\nreturn `**Daily Standup Summary**\\n\\n**Yesterday:** ${yesterday}\\n\\n**Today:** ${today}${blockersText}`;"
   },
   {
-    "name": "Insulin Calculator",
-    "description": "Calculate insulin dosage using the formula ((x * 18) - 80) / 40",
-    "tags": ["health", "calculator", "insulin", "diabetes"],
-    "triggerPhrases": [
-      "insul",
-      "insulin",
-      "calculate insulin",
-      "insulin dose",
-      "insulin dosage"
-    ],
-    "parameters": [
-      {
-        "name": "x",
-        "type": "number",
-        "required": true,
-        "prompt": "What is the value for the calculation?"
-      }
-    ],
-    "executionType": "local",
-    "code": "const result = ((x * 18) - 80) / 40;\nconst rounded = Math.round(result * 100) / 100;\nreturn `For a value of ${x}, the calculated result is: ${rounded}`;"
-  },
-  {
     "name": "Ask Gemini",
     "description": "Have a conversation with Gemini AI to answer questions, get information, or discuss topics. Supports up to 3 back-and-forth exchanges.",
     "tags": ["ai", "gemini", "assistant", "question", "chat"],

@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { Note, NoteColor } from '@otto-ai/core';
 import { useConversationStore } from '../../stores/conversation';
 import { MagicWandIcon } from '../Icons/Icons';
+import { validateAndSanitizeInput, sanitizeText } from '../../utils/sanitize';
+import { logger } from '../../utils/logger';
 
 interface NoteEditorProps {
   note: Note | null;
@@ -76,7 +78,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       setTitle(result.title);
       setSummary(result.summary);
     } catch (error) {
-      console.error('Failed to generate title and summary:', error);
+      logger.error('Failed to generate title and summary:', error);
       alert('Failed to generate title and summary. Using fallback.');
       // Fallback: use first line as title
       const firstLine = content.split('\n')[0].trim();
@@ -94,9 +96,20 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       return;
     }
 
+    // SECURITY: Validate and sanitize all user input before saving
+    const sanitizedContent = validateAndSanitizeInput(content, 50000); // 50KB max
+    if (!sanitizedContent) {
+      alert('Note content is invalid or too long (max 50KB)');
+      return;
+    }
+
+    const sanitizedTitle = validateAndSanitizeInput(title, 200); // 200 chars max for title
+    const sanitizedSummary = validateAndSanitizeInput(summary, 500); // 500 chars max for summary
+    const sanitizedTags = validateAndSanitizeInput(tags, 500); // 500 chars max for tags
+
     // Auto-generate title if not provided
-    let finalTitle = title.trim();
-    let finalSummary = summary.trim();
+    let finalTitle = sanitizedTitle || '';
+    let finalSummary = sanitizedSummary || '';
 
     if (!finalTitle || !finalSummary) {
       await handleGenerateTitleAndSummary();
@@ -105,9 +118,9 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       finalSummary = summary.trim() || content.split(/[.!?]\s/)[0].substring(0, 150);
     }
 
-    const tagArray = tags
+    const tagArray = (sanitizedTags || '')
       .split(',')
-      .map((t) => t.trim())
+      .map((t) => sanitizeText(t.trim()))
       .filter(Boolean);
 
     let savedNoteId: string;
@@ -116,7 +129,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       // Update existing note
       updateNote(note.id, {
         title: finalTitle,
-        content,
+        content: sanitizedContent,
         summary: finalSummary,
         tags: tagArray,
         color,
@@ -133,7 +146,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
     } else {
       // Create new note
       const createdNote = await createNote({
-        content,
+        content: sanitizedContent,
         title: finalTitle,
         tags: tagArray,
         color,
@@ -227,7 +240,10 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
           <label>Content *</label>
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              // SECURITY: Real-time validation feedback (content is sanitized on save)
+              setContent(e.target.value);
+            }}
             placeholder="Write your note here..."
             rows={12}
             className="note-content-textarea"

@@ -5,6 +5,7 @@
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { Message } from '@otto-ai/core';
+import { sanitizeText } from '../../utils/sanitize';
 import './Chat.css';
 
 export interface ChatHandle {
@@ -48,7 +49,14 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({}, ref) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
-    const message = input.trim();
+    // SECURITY: Sanitize user input before sending
+    const sanitizedInput = sanitizeText(input.trim());
+    if (!sanitizedInput) {
+      // Invalid input - don't send
+      return;
+    }
+
+    const message = sanitizedInput;
     setInput('');
     await sendMessage(message);
 
@@ -86,7 +94,8 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({}, ref) => {
             className={`message ${message.role}`}
           >
             <div className="message-content">
-              {message.content}
+              {/* SECURITY: Sanitize message content before rendering */}
+              {sanitizeText(message.content)}
             </div>
             <div className="message-timestamp">
               {message.timestamp.toLocaleTimeString()}

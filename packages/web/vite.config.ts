@@ -23,6 +23,10 @@ export default defineConfig({
     include: ['@otto-ai/core'],
   },
   build: {
+    // SECURITY: Remove console statements in production builds
+    // Note: Vite uses esbuild by default which doesn't support drop_console
+    // Console removal is handled by our logger utility in development mode
+    // For production, consider using a plugin or post-build script
     rollupOptions: {
       output: {
         manualChunks: {

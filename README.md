@@ -47,6 +47,8 @@ The app will be available at `http://localhost:3000`.
 
 The app comes with several example scripts. See the [Adding Scripts guide](docs/guides/adding-scripts.md) for details on creating and managing scripts.
 
+**Note:** The Insulin Calculator script has been removed from the default seed scripts. If you need it, you can import it from `seed-data/insulin-calculator-for-supabase.json` into your Supabase account using the app's script import feature, or add it manually through the Script Editor UI.
+
 ## AI Script Generator
 
 The app includes an AI-powered script generator that can create scripts automatically from natural language descriptions.
@@ -135,6 +137,21 @@ VITE_MCP_AUTH_TOKEN=your-token-here
 ```
 
 For detailed MCP integration setup, see the [MCP Integration guide](docs/integration/mcp-integration.md).
+
+## Security
+
+**⚠️ IMPORTANT:** Before deploying to production, please review the [Security Review](SECURITY_REVIEW.md) and [Security Fixes](SECURITY_FIXES.md) documents.
+
+**Recent Security Improvements:**
+- ✅ Enhanced script execution sandbox with improved validation
+- ✅ Removed exposed environment variables from build
+- ✅ Production-safe logging (console disabled in production)
+- ✅ Input sanitization utilities added (DOMPurify)
+
+**Remaining Work:**
+- Integrate DOMPurify into components rendering user input
+- Replace remaining console statements in service files
+- Consider Web Workers for stronger script isolation
 
 ## Deployment
 

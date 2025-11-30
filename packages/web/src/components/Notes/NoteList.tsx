@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { Note } from '@otto-ai/core';
+import { sanitizeText } from '../../utils/sanitize';
 
 interface NoteListProps {
   notes: Note[];
@@ -66,7 +67,8 @@ const NoteList: React.FC<NoteListProps> = ({
           <div className="note-list-item-header">
             <div className="note-list-item-title">
               {note.isPinned && <span className="pin-icon">📌</span>}
-              {truncate(note.title, 50)}
+              {/* SECURITY: Sanitize note title before rendering */}
+              {truncate(sanitizeText(note.title), 50)}
             </div>
             <div className="note-list-item-actions" onClick={(e) => e.stopPropagation()}>
               <button
@@ -94,7 +96,8 @@ const NoteList: React.FC<NoteListProps> = ({
 
           {note.summary && (
             <div className="note-list-item-summary">
-              {truncate(note.summary, 100)}
+              {/* SECURITY: Sanitize note summary before rendering */}
+              {truncate(sanitizeText(note.summary), 100)}
             </div>
           )}
 
@@ -104,7 +107,8 @@ const NoteList: React.FC<NoteListProps> = ({
               <span className="note-tags">
                 {note.tags.slice(0, 2).map((tag) => (
                   <span key={tag} className="note-tag">
-                    {tag}
+                    {/* SECURITY: Sanitize tag before rendering */}
+                    {sanitizeText(tag)}
                   </span>
                 ))}
                 {note.tags.length > 2 && (

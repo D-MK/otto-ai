@@ -13,6 +13,7 @@ import { SyncService, SyncResult, ConflictResolution } from './services/syncServ
 import { CSVExportService } from './services/csvExport';
 import { ThemeService } from './services/themeService';
 import MobileNav from './components/MobileNav/MobileNav';
+import { logger } from './utils/logger';
 import './App.css';
 
 // Lazy load conditional components to improve initial load time
@@ -82,30 +83,23 @@ const App: React.FC = () => {
         await checkAuthState();
       })
       .catch((err) => {
-        console.error('Failed to load settings:', err);
+        logger.error('Failed to load settings:', err);
       });
   }, []);
 
   // Initialize the app (non-blocking - doesn't wait for settings)
   useEffect(() => {
-    // Priority: runtime settings > environment variables
+    // SECURITY: Only use runtime settings from user configuration
+    // Never use VITE_ environment variables for secrets (they're exposed in bundle)
     const hasRuntimeMcpServers = settings.mcpServers && settings.mcpServers.length > 0;
 
     if (hasRuntimeMcpServers) {
       // Use the reinitializeWithSettings method to load runtime config
       reinitializeWithSettings();
     } else {
-      // Fall back to environment variables if no runtime config
-      const mcpConfig = import.meta.env.VITE_MCP_BASE_URL
-        ? {
-            baseUrl: import.meta.env.VITE_MCP_BASE_URL,
-            authType: import.meta.env.VITE_MCP_AUTH_TYPE || 'none',
-            authToken: import.meta.env.VITE_MCP_AUTH_TOKEN,
-            timeout: 10000,
-          }
-        : undefined;
-
-      initialize(':memory:', mcpConfig as any);
+      // No MCP configuration - initialize without MCP client
+      // SECURITY: Removed fallback to VITE_MCP_* env vars to prevent secret exposure
+      initialize(':memory:', undefined);
     }
   }, [initialize, reinitializeWithSettings, settings.mcpServers]);
 
@@ -168,7 +162,7 @@ const App: React.FC = () => {
 
   const handleSync = async () => {
     if (!scriptStorage || !settings.supabaseUrl || !settings.supabaseApiKey) {
-      console.error('Script storage or Supabase not configured');
+      logger.error('Script storage or Supabase not configured');
       return;
     }
 
@@ -185,7 +179,7 @@ const App: React.FC = () => {
       setSyncResult(result);
       setShowConflictResolver(true);
     } catch (error) {
-      console.error('Sync error:', error);
+      logger.error('Sync error:', error);
       alert(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
@@ -218,14 +212,14 @@ const App: React.FC = () => {
 
       alert('Sync completed successfully!');
     } catch (error) {
-      console.error('Conflict resolution error:', error);
+      logger.error('Conflict resolution error:', error);
       alert(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const handleExportCSV = () => {
     if (!scriptStorage) {
-      console.error('Script storage not initialized');
+      logger.error('Script storage not initialized');
       return;
     }
 
@@ -234,7 +228,7 @@ const App: React.FC = () => {
       const filename = CSVExportService.generateFilename();
       CSVExportService.downloadCSV(scripts, filename);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error:', error);
       alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };

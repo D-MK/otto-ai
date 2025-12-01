@@ -5,6 +5,8 @@
  * Otherwise, uses device-specific encryption (seamless but device-bound)
  */
 
+import { logger } from '../utils/logger';
+
 const ENCRYPTION_PREFIX = 'encrypted:';
 const PASSWORD_ENCRYPTION_PREFIX = 'encrypted:password:';
 const PBKDF2_ITERATIONS = 100000;
@@ -217,12 +219,12 @@ export class EncryptionService {
           iv: iv as BufferSource,
         },
         key,
-        ciphertextBytes
+        ciphertextBytes as BufferSource
       );
 
       return new TextDecoder().decode(plaintextBytes);
     } catch (error) {
-      console.error('Password decryption failed:', error);
+      logger.error('Password decryption failed:', error);
       return null;
     }
   }
@@ -280,12 +282,12 @@ export class EncryptionService {
           iv: iv as BufferSource,
         },
         key,
-        ciphertextBytes
+        ciphertextBytes as BufferSource
       );
 
       return new TextDecoder().decode(plaintextBytes);
     } catch (error) {
-      console.error('Device fingerprint decryption failed:', error);
+      logger.error('Device fingerprint decryption failed:', error);
       return null;
     }
   }
@@ -309,9 +311,9 @@ export class EncryptionService {
         return this.encryptWithDeviceFingerprint(plaintext);
       }
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       // Fallback: return plaintext with warning
-      console.warn('Falling back to plaintext storage due to encryption failure');
+      logger.warn('Falling back to plaintext storage due to encryption failure');
       return plaintext;
     }
   }
@@ -337,7 +339,7 @@ export class EncryptionService {
         return result;
       }
       // Password decryption failed - might be wrong password
-      console.warn('Password decryption failed. Please verify your master password.');
+      logger.warn('Password decryption failed. Please verify your master password.');
       return null;
     }
 
@@ -350,7 +352,7 @@ export class EncryptionService {
     }
 
     // Both methods failed
-    console.warn(
+    logger.warn(
       'Failed to decrypt API key. This may happen if device characteristics changed or password is incorrect. Please re-enter your API key.'
     );
     return null;

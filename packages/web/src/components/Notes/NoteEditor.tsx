@@ -156,7 +156,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
       });
       
       // Update note with summary if provided
-      if (createdNote && finalSummary) {
+      if (createdNote !== undefined && finalSummary) {
         updateNote(createdNote.id, { summary: finalSummary });
         const updatedNote = noteStorage?.get(createdNote.id);
         if (updatedNote) {
@@ -166,7 +166,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
         }
       } else {
         // Pass the created note directly to onSave
-        onSave(createdNote || undefined);
+        onSave(createdNote);
       }
     }
   };

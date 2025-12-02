@@ -54,6 +54,7 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const chatRef = useRef<ChatHandle>(null);
   const sidebarRef = useRef<SidebarHandle>(null);
 
@@ -274,6 +275,7 @@ const App: React.FC = () => {
           selectedNoteId={selectedNote?.id || null}
           activeSettingsSection={activeSettingsSection}
           onSettingsSectionChange={setActiveSettingsSection}
+          onCollapsedChange={setIsSidebarCollapsed}
         />
         <div className="main-content">
           <AppHeader
@@ -324,14 +326,25 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Mobile Sidebar Toggle - visible only on mobile for Settings and Notes tabs */}
-        {(activeTab === 'settings' || activeTab === 'notes' || activeTab === 'scripts') && (
+        {/* Mobile Sidebar Toggle - visible only on mobile for Settings and Notes tabs when sidebar is closed */}
+        {(activeTab === 'settings' || activeTab === 'notes' || activeTab === 'scripts') && isSidebarCollapsed && (
           <button
             className="mobile-sidebar-toggle"
             onClick={() => sidebarRef.current?.toggleSidebar()}
             aria-label="Toggle menu"
           >
             ☰
+          </button>
+        )}
+        
+        {/* Mobile Sidebar Close Button - shown when sidebar is open */}
+        {(activeTab === 'settings' || activeTab === 'notes' || activeTab === 'scripts') && !isSidebarCollapsed && (
+          <button
+            className="mobile-sidebar-close"
+            onClick={() => sidebarRef.current?.toggleSidebar()}
+            aria-label="Close menu"
+          >
+            ✕
           </button>
         )}
       </div>

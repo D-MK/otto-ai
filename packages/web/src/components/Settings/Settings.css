@@ -121,6 +121,15 @@
   border-top: 1px solid var(--border-color);
 }
 
+/* Mobile: Move save button left to avoid overlap with sidebar toggle */
+@media (max-width: 768px) {
+  .settings-footer {
+    justify-content: flex-start;
+    padding: 20px 16px;
+    padding-right: 80px; /* Add right padding to avoid overlap with toggle button */
+  }
+}
+
 .settings-btn-primary,
 .settings-btn-secondary {
   padding: 10px 20px;

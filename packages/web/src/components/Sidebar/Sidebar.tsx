@@ -15,6 +15,7 @@ export interface SidebarHandle {
   refresh: () => void;
   refreshNotes: () => void;
   toggleSidebar: () => void;
+  isCollapsed: () => boolean;
 }
 
 interface SidebarProps {
@@ -28,6 +29,7 @@ interface SidebarProps {
   selectedNoteId?: string | null;
   activeSettingsSection?: SettingsSection;
   onSettingsSectionChange?: (section: SettingsSection) => void;
+  onCollapsedChange?: (isCollapsed: boolean) => void;
 }
 
 type SortOption = 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc';
@@ -42,7 +44,8 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
   selectedScriptId,
   selectedNoteId,
   activeSettingsSection,
-  onSettingsSectionChange
+  onSettingsSectionChange,
+  onCollapsedChange
 }, ref) => {
   const { scriptStorage, noteStorage, settings, saveSettings, loadNotes } = useConversationStore();
   const [scripts, setScripts] = useState<Script[]>([]);
@@ -53,9 +56,6 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
     }
     return false;
   });
-  // Fullscreen mode state (mobile only)
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  
   // Chat tab - scripts list state
   const [chatSelectedTags, setChatSelectedTags] = useState<Set<string>>(new Set());
   const [expandedTagsScripts, setExpandedTagsScripts] = useState<Set<string>>(new Set());
@@ -89,36 +89,20 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
     }
   };
 
-  const toggleFullscreen = () => {
-    if (isCollapsed) {
-      // If collapsed, first expand to overlay, then go fullscreen
-      setIsCollapsed(false);
-      // Use setTimeout to ensure state update happens before fullscreen
-      setTimeout(() => setIsFullscreen(true), 0);
-    } else {
-      setIsFullscreen(!isFullscreen);
+  // Notify parent when collapsed state changes
+  useEffect(() => {
+    if (onCollapsedChange) {
+      onCollapsedChange(isCollapsed);
     }
-  };
-
-  const handleBackFromFullscreen = () => {
-    setIsFullscreen(false);
-  };
+  }, [isCollapsed, onCollapsedChange]);
 
   useImperativeHandle(ref, () => ({
     refresh: loadScripts,
     refreshNotes: loadNotesData,
     toggleSidebar: () => {
-      if (isFullscreen) {
-        setIsFullscreen(false);
-        setIsCollapsed(true);
-      } else {
-        setIsCollapsed(!isCollapsed);
-        // Reset fullscreen when collapsing
-        if (isCollapsed) {
-          setIsFullscreen(false);
-        }
-      }
+      setIsCollapsed(!isCollapsed);
     },
+    isCollapsed: () => isCollapsed,
   }));
 
   useEffect(() => {
@@ -247,11 +231,19 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
     if (onScriptSelect) {
       onScriptSelect(script);
     }
+    // Auto-close sidebar on mobile when script is selected
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setIsCollapsed(true);
+    }
   };
 
   const handleNoteClick = (note: Note) => {
     if (onNoteSelect) {
       onNoteSelect(note);
+    }
+    // Auto-close sidebar on mobile when note is selected
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setIsCollapsed(true);
     }
   };
 
@@ -310,91 +302,17 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
       {/* Mobile backdrop */}
       {!isCollapsed && (
         <div
-          className={`sidebar-backdrop mobile-only ${isFullscreen ? 'fullscreen' : ''}`}
-          onClick={() => {
-            if (!isFullscreen) {
-              setIsCollapsed(true);
-            }
-          }}
+          className="sidebar-backdrop mobile-only"
+          onClick={() => setIsCollapsed(true)}
         />
       )}
-      <div className={`sidebar ${!isCollapsed ? 'expanded' : 'collapsed'} ${isFullscreen ? 'fullscreen' : ''}`}>
+      <div className={`sidebar ${!isCollapsed ? 'expanded' : 'collapsed'}`}>
       <div className="sidebar-header">
-        {/* Back button (fullscreen mode only) */}
-        {isFullscreen && (
-          <button
-            className="back-button mobile-only"
-            onClick={handleBackFromFullscreen}
-            title="Back to overlay"
-            aria-label="Back to overlay"
-          >
-            ←
-          </button>
-        )}
-        
-        {/* Collapse/Close button - only show when not fullscreen */}
-        {!isFullscreen && (
-          <button
-            className="collapse-button mobile-only"
-            onClick={() => {
-              setIsCollapsed(!isCollapsed);
-              if (isCollapsed) {
-                setIsFullscreen(false);
-              }
-            }}
-            title={isCollapsed ? 'Open menu' : 'Close menu'}
-            aria-label={isCollapsed ? 'Open menu' : 'Close menu'}
-          >
-            {isCollapsed ? '☰' : '✕'}
-          </button>
-        )}
-        
-        {/* Fullscreen toggle button (overlay mode only) */}
-        {!isCollapsed && !isFullscreen && (
-          <button
-            className="fullscreen-toggle-button mobile-only"
-            onClick={toggleFullscreen}
-            title="Expand to fullscreen"
-            aria-label="Toggle fullscreen sidebar"
-            aria-expanded="false"
-          >
-            ⛶
-          </button>
-        )}
-        
-        {/* Generate Script button (non-fullscreen only) */}
-        {!isCollapsed && !isFullscreen && (
+        {/* Generate Script button */}
+        {!isCollapsed && (
           <button className="generate-script-button" onClick={onGenerateClick}>
             <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
             Generate Script
-          </button>
-        )}
-        
-        {/* Close button (fullscreen mode only - right side) */}
-        {isFullscreen && (
-          <button
-            className="collapse-button mobile-only"
-            onClick={() => {
-              setIsFullscreen(false);
-              setIsCollapsed(true);
-            }}
-            title="Close menu"
-            aria-label="Close menu"
-          >
-            ✕
-          </button>
-        )}
-        
-        {/* Compress button (fullscreen mode only - right side) */}
-        {isFullscreen && (
-          <button
-            className="fullscreen-toggle-button mobile-only"
-            onClick={toggleFullscreen}
-            title="Return to overlay"
-            aria-label="Return to overlay"
-            aria-expanded="true"
-          >
-            ⤡
           </button>
         )}
       </div>
@@ -750,35 +668,65 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
               <div className="settings-sections">
                 <button
                   className={`settings-section-item ${activeSettingsSection === 'api-keys' ? 'active' : ''}`}
-                  onClick={() => onSettingsSectionChange?.('api-keys')}
+                  onClick={() => {
+                    onSettingsSectionChange?.('api-keys');
+                    // Auto-close sidebar on mobile when section is selected
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                      setIsCollapsed(true);
+                    }
+                  }}
                 >
                   <ApiKeysIcon className="settings-section-icon" size={18} />
                   <span>API Keys</span>
                 </button>
                 <button
                   className={`settings-section-item ${activeSettingsSection === 'mcp-servers' ? 'active' : ''}`}
-                  onClick={() => onSettingsSectionChange?.('mcp-servers')}
+                  onClick={() => {
+                    onSettingsSectionChange?.('mcp-servers');
+                    // Auto-close sidebar on mobile when section is selected
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                      setIsCollapsed(true);
+                    }
+                  }}
                 >
                   <McpServerIcon className="settings-section-icon" size={18} />
                   <span>MCP Servers</span>
                 </button>
                 <button
                   className={`settings-section-item ${activeSettingsSection === 'sync' ? 'active' : ''}`}
-                  onClick={() => onSettingsSectionChange?.('sync')}
+                  onClick={() => {
+                    onSettingsSectionChange?.('sync');
+                    // Auto-close sidebar on mobile when section is selected
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                      setIsCollapsed(true);
+                    }
+                  }}
                 >
                   <SyncIcon className="settings-section-icon" size={18} />
                   <span>Sync & Export</span>
                 </button>
                 <button
                   className={`settings-section-item ${activeSettingsSection === 'ai-prompt' ? 'active' : ''}`}
-                  onClick={() => onSettingsSectionChange?.('ai-prompt')}
+                  onClick={() => {
+                    onSettingsSectionChange?.('ai-prompt');
+                    // Auto-close sidebar on mobile when section is selected
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                      setIsCollapsed(true);
+                    }
+                  }}
                 >
                   <AiPromptIcon className="settings-section-icon" size={18} />
                   <span>AI Prompt</span>
                 </button>
                 <button
                   className={`settings-section-item ${activeSettingsSection === 'appearance' ? 'active' : ''}`}
-                  onClick={() => onSettingsSectionChange?.('appearance')}
+                  onClick={() => {
+                    onSettingsSectionChange?.('appearance');
+                    // Auto-close sidebar on mobile when section is selected
+                    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+                      setIsCollapsed(true);
+                    }
+                  }}
                 >
                   <AppearanceIcon className="settings-section-icon" size={18} />
                   <span>Appearance</span>

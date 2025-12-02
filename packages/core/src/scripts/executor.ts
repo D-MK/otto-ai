@@ -105,49 +105,53 @@ export class ScriptExecutor {
         // SECURITY: Explicitly provide only safe globals, prevent access to globalThis
         const paramNames = Object.keys(params);
         const paramValues = paramNames.map(name => params[name]);
-        
+
+        // Pre-create safe globals outside the sandboxed scope to avoid TDZ
+        const safeMath = {
+          abs: Math.abs.bind(Math),
+          ceil: Math.ceil.bind(Math),
+          floor: Math.floor.bind(Math),
+          max: Math.max.bind(Math),
+          min: Math.min.bind(Math),
+          pow: Math.pow.bind(Math),
+          round: Math.round.bind(Math),
+          sqrt: Math.sqrt.bind(Math),
+          random: Math.random.bind(Math),
+          PI: Math.PI,
+          E: Math.E,
+        };
+
+        const safeDate = {
+          now: Date.now.bind(Date),
+        };
+
+        const safeJSON = {
+          parse: JSON.parse.bind(JSON),
+          stringify: JSON.stringify.bind(JSON),
+        };
+
+        const safeConsole = {
+          log: () => {},
+          error: () => {},
+          warn: () => {},
+          info: () => {},
+        };
+
         // Create isolated scope without access to globalThis, window, document, etc.
+        // Pass safe globals as parameters to avoid temporal dead zone
         const sandboxedFunction = new Function(
+          'Math',
+          'Date',
+          'JSON',
+          'console',
           ...paramNames,
           `
           'use strict';
-          
-          // Only provide safe, isolated globals
-          const Math = {
-            abs: Math.abs,
-            ceil: Math.ceil,
-            floor: Math.floor,
-            max: Math.max,
-            min: Math.min,
-            pow: Math.pow,
-            round: Math.round,
-            sqrt: Math.sqrt,
-            PI: Math.PI,
-            E: Math.E,
-          };
-          
-          const Date = {
-            now: () => Date.now(),
-          };
-          
-          const JSON = {
-            parse: JSON.parse,
-            stringify: JSON.stringify,
-          };
-          
-          // No-op console to prevent information leakage
-          const console = { 
-            log: () => {},
-            error: () => {},
-            warn: () => {},
-            info: () => {},
-          };
-
           ${code}
           `
         );
 
-        const result = sandboxedFunction(...paramValues);
+        const result = sandboxedFunction(safeMath, safeDate, safeJSON, safeConsole, ...paramValues);
         clearTimeout(timeout);
         resolve(result);
       } catch (error) {

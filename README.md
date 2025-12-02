@@ -18,6 +18,9 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 - **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
 - **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
 - **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme
+- **Automatic Code Highlighting**: Code in scripts and AI prompts is automatically syntax-highlighted for better readability
+- **Mobile-Optimized UI**: Centered logo with "Otto <logo> AI" format on mobile devices
+- **Mobile Sidebar Fullscreen Toggle**: Toggle sidebar between overlay (85% width) and fullscreen (100% width) modes on mobile devices for better content visibility
 
 ## Quick Start
 
@@ -229,6 +232,10 @@ For detailed testing information, see the [Testing Guide](docs/development/testi
 
 ## Customization
 
+### Logo Design
+
+The Otto logo has been redesigned to match the geometric, angular style of the tab icons. It features a more elaborate version of the "Generate Script" icon style with angular shapes, geometric patterns, and clean lines that maintain the Otto character while aligning with the modern UI aesthetic.
+
 ### Color Themes
 
 Otto AI includes 5 classic preset themes and supports custom theme creation:
@@ -271,6 +278,9 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - **[Application Review](docs/reviews/app-review.md)** - Comprehensive feature analysis and technical assessment
 - **[Portfolio/SAAS Readiness Review](docs/reviews/portfolio-saas-readiness-review.md)** - Production readiness assessment and recommendations
 - **[Next Features & Roadmap](docs/reviews/next-features.md)** - Feature gap analysis and prioritized roadmap
+
+### Design Documentation
+- **[Mobile Sidebar Toggle Design Plan](docs/design/mobile-sidebar-toggle-design.md)** - Design plan for mobile sidebar fullscreen toggle feature
 
 See the [Documentation Index](docs/README.md) for a complete overview.
 

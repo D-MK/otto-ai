@@ -38,6 +38,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
   const [linkedScriptIds, setLinkedScriptIds] = useState<string[]>([]);
   const [linkedNoteIds, setLinkedNoteIds] = useState<string[]>([]);
   const [showLinkMenu, setShowLinkMenu] = useState(false);
+  const [viewMode, setViewMode] = useState(false); // true = view, false = edit
 
   // Available notes for linking (excluding current note)
   const availableNotes = noteStorage?.getAll().filter((n) => n.id !== note?.id) || [];
@@ -193,37 +194,81 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
   return (
     <div className="note-editor">
       <div className="note-editor-header">
-        <h3>{note ? 'Edit Note' : 'New Note'}</h3>
+        <h3>{note ? (viewMode ? 'View Note' : 'Edit Note') : 'New Note'}</h3>
         <div className="note-editor-actions">
-          <button
-            onClick={handleGenerateTitleAndSummary}
-            className="generate-button"
-            disabled={isGenerating || !content.trim()}
-            title="Generate title and summary using AI"
-          >
-            {isGenerating ? (
-              <>⏳ Generating...</>
-            ) : (
-              <>
-                <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
-                Generate Title & Summary
-              </>
-            )}
-          </button>
+          {note && (
+            <button
+              onClick={() => setViewMode(!viewMode)}
+              className="toggle-view-button mobile-only"
+            >
+              {viewMode ? '✏️ Edit' : '👁️ View'}
+            </button>
+          )}
+          {!viewMode && (
+            <button
+              onClick={handleGenerateTitleAndSummary}
+              className="generate-button"
+              disabled={isGenerating || !content.trim()}
+              title="Generate title and summary using AI"
+            >
+              {isGenerating ? (
+                <>⏳ Generating...</>
+              ) : (
+                <>
+                  <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
+                  Generate Title & Summary
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="note-editor-form">
-        <div className="form-group">
-          <label>Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Auto-generated if left empty"
-            className="note-title-input"
-          />
+      {viewMode ? (
+        <div className="note-view-mode">
+          <div className="note-view-header">
+            <h2>{title || 'Untitled Note'}</h2>
+            {isPinned && <span className="pinned-badge">📌 Pinned</span>}
+          </div>
+          {summary && (
+            <div className="note-view-summary">
+              <strong>Summary:</strong> {summary}
+            </div>
+          )}
+          <div className="note-view-content">
+            {content}
+          </div>
+          {tags && (
+            <div className="note-view-tags">
+              {tags.split(',').map((tag, idx) => (
+                <span key={idx} className="note-view-tag">{tag.trim()}</span>
+              ))}
+            </div>
+          )}
+          {(linkedScriptIds.length > 0 || linkedNoteIds.length > 0) && (
+            <div className="note-view-links">
+              <strong>Links:</strong>
+              {linkedScriptIds.length > 0 && (
+                <div>Scripts: {linkedScriptIds.map(id => availableScripts.find(s => s.id === id)?.name).filter(Boolean).join(', ')}</div>
+              )}
+              {linkedNoteIds.length > 0 && (
+                <div>Notes: {linkedNoteIds.map(id => availableNotes.find(n => n.id === id)?.title).filter(Boolean).join(', ')}</div>
+              )}
+            </div>
+          )}
         </div>
+      ) : (
+        <div className="note-editor-form">
+          <div className="form-group">
+            <label>Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Auto-generated if left empty"
+              className="note-title-input"
+            />
+          </div>
 
         <div className="form-group">
           <label>Summary</label>
@@ -352,23 +397,24 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
           )}
         </div>
 
-        <div className="form-actions">
-          <button onClick={handleSave} className="save-button">
-            Save Note
-          </button>
-          <button onClick={onCancel} className="cancel-button">
-            Cancel
-          </button>
-          {note && onDelete && (
-            <button
-              onClick={() => onDelete(note.id)}
-              className="delete-button"
-            >
-              Delete
+          <div className="form-actions">
+            <button onClick={handleSave} className="save-button">
+              Save Note
             </button>
-          )}
+            <button onClick={onCancel} className="cancel-button">
+              Cancel
+            </button>
+            {note && onDelete && (
+              <button
+                onClick={() => onDelete(note.id)}
+                className="delete-button"
+              >
+                Delete
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

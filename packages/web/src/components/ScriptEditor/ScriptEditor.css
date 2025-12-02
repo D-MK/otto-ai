@@ -602,3 +602,21 @@
     font-size: 0.9rem;
   }
 }
+
+/* Syntax Highlighting Styles */
+.code-preview {
+  background-color: #2d2d2d;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+.code-preview code {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}

@@ -14,10 +14,10 @@ export interface ChatHandle {
 }
 
 interface ChatProps {
-  // Props removed - header moved to AppHeader component
+  onScriptClick?: (scriptPhrase: string) => void;
 }
 
-const Chat = forwardRef<ChatHandle, ChatProps>(({}, ref) => {
+const Chat = forwardRef<ChatHandle, ChatProps>(({ onScriptClick }, ref) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -81,9 +81,19 @@ const Chat = forwardRef<ChatHandle, ChatProps>(({}, ref) => {
             <h3>Welcome to Otto AI</h3>
             <p>I can help you run scripts and automations. Try asking me to:</p>
             <ul>
-              <li>Calculate your BMI</li>
-              <li>Create a daily standup summary</li>
-              <li>Or create your own custom scripts!</li>
+              <li
+                className="clickable-suggestion"
+                onClick={() => onScriptClick?.('calculate my bmi')}
+              >
+                Calculate your BMI
+              </li>
+              <li
+                className="clickable-suggestion"
+                onClick={() => onScriptClick?.('create daily standup summary')}
+              >
+                Create a daily standup summary
+              </li>
+              <li className="non-clickable">Or create your own custom scripts!</li>
             </ul>
           </div>
         )}

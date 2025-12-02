@@ -25,6 +25,7 @@ const ConflictResolver = React.lazy(() => import('./components/ConflictResolver/
 const Auth = React.lazy(() => import('./components/Auth/Auth'));
 const Notes = React.lazy(() => import('./components/Notes/Notes'));
 import { TabType } from './components/TabContainer/TabContainer';
+import { SettingsSection } from './components/Settings/Settings';
 
 // Load seed scripts
 import seedScripts from '../../../seed-data/scripts.json';
@@ -44,9 +45,9 @@ const App: React.FC = () => {
     authChecked,
   } = useConversationStore();
   const [activeTab, setActiveTab] = useState<TabType>('chat');
+  const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSection>('api-keys');
   const [showDebug, setShowDebug] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [showConflictResolver, setShowConflictResolver] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
@@ -271,16 +272,19 @@ const App: React.FC = () => {
           onNoteSelect={setSelectedNote}
           selectedScriptId={selectedScript?.id || null}
           selectedNoteId={selectedNote?.id || null}
+          activeSettingsSection={activeSettingsSection}
+          onSettingsSectionChange={setActiveSettingsSection}
         />
         <div className="main-content">
           <AppHeader
             onDebugClick={DEBUG_MODE ? () => setShowDebug(!showDebug) : undefined}
-            onSettingsClick={() => setShowSettings(true)}
+            onSettingsClick={() => setActiveTab('settings')}
             showDebug={showDebug}
           />
           {activeTab === 'chat' && (
             <Chat
               ref={chatRef}
+              onScriptClick={handleKeywordClick}
             />
           )}
           {activeTab === 'scripts' && (
@@ -298,7 +302,7 @@ const App: React.FC = () => {
           )}
           {activeTab === 'notes' && (
             <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading notes...</div></div>}>
-              <Notes 
+              <Notes
                 onClose={() => setActiveTab('chat')}
                 selectedNote={selectedNote}
                 onNoteChange={setSelectedNote}
@@ -306,7 +310,30 @@ const App: React.FC = () => {
               />
             </Suspense>
           )}
+          {activeTab === 'settings' && (
+            <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading settings...</div></div>}>
+              <Settings
+                settings={settings}
+                onSave={handleSettingsSave}
+                onSync={handleSync}
+                onExportCSV={handleExportCSV}
+                activeSection={activeSettingsSection}
+                onSectionChange={setActiveSettingsSection}
+              />
+            </Suspense>
+          )}
         </div>
+
+        {/* Mobile Sidebar Toggle - visible only on mobile for Settings and Notes tabs */}
+        {(activeTab === 'settings' || activeTab === 'notes' || activeTab === 'scripts') && (
+          <button
+            className="mobile-sidebar-toggle"
+            onClick={() => sidebarRef.current?.toggleSidebar()}
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+        )}
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -315,18 +342,6 @@ const App: React.FC = () => {
       {showAIGenerator && (
         <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading AI generator...</div></div>}>
           <AIScriptGenerator onClose={handleAIGeneratorClose} />
-        </Suspense>
-      )}
-      {showSettings && (
-        <Suspense fallback={<div className="loading-screen"><div className="loading-spinner"></div><div>Loading settings...</div></div>}>
-          <Settings
-            isOpen={showSettings}
-            onClose={() => setShowSettings(false)}
-            settings={settings}
-            onSave={handleSettingsSave}
-            onSync={handleSync}
-            onExportCSV={handleExportCSV}
-          />
         </Suspense>
       )}
       {showConflictResolver && (

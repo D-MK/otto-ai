@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { TabType } from '../TabContainer/TabContainer';
-import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon } from '../Icons/Icons';
+import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon, SettingsIcon } from '../Icons/Icons';
 import './MobileNav.css';
 
 interface MobileNavProps {
@@ -36,6 +36,13 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeTab, onTabChange, onGenerat
         aria-label="Notes"
       >
         <NotesIcon size={24} />
+      </button>
+      <button
+        className={`mobile-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+        onClick={() => onTabChange('settings')}
+        aria-label="Settings"
+      >
+        <SettingsIcon size={24} />
       </button>
       <button
         className="mobile-nav-generate"

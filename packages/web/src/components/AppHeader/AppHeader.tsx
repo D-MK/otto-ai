@@ -62,9 +62,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ onDebugClick, onSettingsClick, sh
 
   return (
     <div className="app-header-container">
-      <h2>
-        Otto AI
-        <OttoLogo size={28} />
+      <h2 className="app-title">
+        <span className="app-title-part">Otto</span>
+        <OttoLogo size={45} />
+        <span className="app-title-part">AI</span>
       </h2>
       <div className="header-buttons">
         <button

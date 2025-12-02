@@ -5,7 +5,7 @@
 import React from 'react';
 import './TabContainer.css';
 
-export type TabType = 'chat' | 'scripts' | 'notes';
+export type TabType = 'chat' | 'scripts' | 'notes' | 'settings';
 
 interface TabContainerProps {
   children: React.ReactNode;

@@ -2,9 +2,12 @@
  * ScriptEditor component - create and edit scripts
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Script, ParameterDef, ExecutionType } from '@otto-ai/core';
 import { useConversationStore } from '../../stores/conversation';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-javascript';
 import './ScriptEditor.css';
 
 interface ScriptEditorProps {
@@ -48,6 +51,14 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
   const [code, setCode] = useState('');
   const [mcpEndpoint, setMcpEndpoint] = useState('');
   const [parameters, setParameters] = useState<ParameterDef[]>([]);
+  const codeRef = useRef<HTMLElement>(null);
+
+  // Apply syntax highlighting when code changes (always show highlighting when not editing)
+  useEffect(() => {
+    if (codeRef.current && !isEditing) {
+      Prism.highlightElement(codeRef.current);
+    }
+  }, [code, isEditing]);
 
   const handleNewScript = () => {
     if (onScriptChange) {
@@ -255,13 +266,21 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
               {executionType === 'local' && (
                 <div className="form-group">
                   <label>Code</label>
-                  <textarea
-                    value={code}
-                    onChange={e => setCode(e.target.value)}
-                    placeholder="return 'Hello, ' + name;"
-                    rows={8}
-                    className="code-textarea"
-                  />
+                  {isEditing ? (
+                    <textarea
+                      value={code}
+                      onChange={e => setCode(e.target.value)}
+                      placeholder="return 'Hello, ' + name;"
+                      rows={8}
+                      className="code-textarea"
+                    />
+                  ) : (
+                    <pre className="code-preview">
+                      <code ref={codeRef} className="language-javascript">
+                        {code || '// No code yet...'}
+                      </code>
+                    </pre>
+                  )}
                 </div>
               )}
 

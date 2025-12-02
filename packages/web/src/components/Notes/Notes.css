@@ -865,3 +865,115 @@
     flex: 1;
   }
 }
+
+/* Mobile-only Edit/View Toggle */
+.toggle-view-button {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .toggle-view-button.mobile-only {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .toggle-view-button.mobile-only:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--accent-hover);
+  }
+}
+
+/* Note View Mode Styles */
+.note-view-mode {
+  padding: 1.5rem;
+  max-width: 800px;
+}
+
+.note-view-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.note-view-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--text-primary);
+}
+
+.pinned-badge {
+  background-color: #FFF4E5;
+  color: #FF9800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.note-view-summary {
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--accent-color);
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.note-view-content {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  padding: 1rem 0;
+}
+
+.note-view-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.note-view-tag {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+}
+
+.note-view-links {
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.note-view-links strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.note-view-links div {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}

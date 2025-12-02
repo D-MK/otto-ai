@@ -5,14 +5,16 @@
 import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { Script, Note, NoteFilter, NoteSortOption } from '@otto-ai/core';
-import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon } from '../Icons/Icons';
+import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon, SettingsIcon, ApiKeysIcon, McpServerIcon, SyncIcon, AiPromptIcon, AppearanceIcon } from '../Icons/Icons';
 import { TabType } from '../TabContainer/TabContainer';
+import { SettingsSection } from '../Settings/Settings';
 import NoteList from '../Notes/NoteList';
 import './Sidebar.css';
 
 export interface SidebarHandle {
   refresh: () => void;
   refreshNotes: () => void;
+  toggleSidebar: () => void;
 }
 
 interface SidebarProps {
@@ -24,23 +26,35 @@ interface SidebarProps {
   onNoteSelect?: (note: Note | null) => void;
   selectedScriptId?: string | null;
   selectedNoteId?: string | null;
+  activeSettingsSection?: SettingsSection;
+  onSettingsSectionChange?: (section: SettingsSection) => void;
 }
 
 type SortOption = 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc';
 
-const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({ 
-  onKeywordClick, 
-  onGenerateClick, 
-  activeTab, 
+const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
+  onKeywordClick,
+  onGenerateClick,
+  activeTab,
   onTabChange,
   onScriptSelect,
   onNoteSelect,
   selectedScriptId,
-  selectedNoteId
+  selectedNoteId,
+  activeSettingsSection,
+  onSettingsSectionChange
 }, ref) => {
   const { scriptStorage, noteStorage, settings, saveSettings, loadNotes } = useConversationStore();
   const [scripts, setScripts] = useState<Script[]>([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Default to collapsed on mobile
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
+  // Fullscreen mode state (mobile only)
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Chat tab - scripts list state
   const [chatSelectedTags, setChatSelectedTags] = useState<Set<string>>(new Set());
@@ -75,9 +89,36 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
     }
   };
 
+  const toggleFullscreen = () => {
+    if (isCollapsed) {
+      // If collapsed, first expand to overlay, then go fullscreen
+      setIsCollapsed(false);
+      // Use setTimeout to ensure state update happens before fullscreen
+      setTimeout(() => setIsFullscreen(true), 0);
+    } else {
+      setIsFullscreen(!isFullscreen);
+    }
+  };
+
+  const handleBackFromFullscreen = () => {
+    setIsFullscreen(false);
+  };
+
   useImperativeHandle(ref, () => ({
     refresh: loadScripts,
     refreshNotes: loadNotesData,
+    toggleSidebar: () => {
+      if (isFullscreen) {
+        setIsFullscreen(false);
+        setIsCollapsed(true);
+      } else {
+        setIsCollapsed(!isCollapsed);
+        // Reset fullscreen when collapsing
+        if (isCollapsed) {
+          setIsFullscreen(false);
+        }
+      }
+    },
   }));
 
   useEffect(() => {
@@ -265,19 +306,95 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
   };
 
   return (
-    <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <>
+      {/* Mobile backdrop */}
+      {!isCollapsed && (
+        <div
+          className={`sidebar-backdrop mobile-only ${isFullscreen ? 'fullscreen' : ''}`}
+          onClick={() => {
+            if (!isFullscreen) {
+              setIsCollapsed(true);
+            }
+          }}
+        />
+      )}
+      <div className={`sidebar ${!isCollapsed ? 'expanded' : 'collapsed'} ${isFullscreen ? 'fullscreen' : ''}`}>
       <div className="sidebar-header">
-        <button
-          className="collapse-button mobile-only"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? '▶' : '◀'}
-        </button>
-        {!isCollapsed && (
+        {/* Back button (fullscreen mode only) */}
+        {isFullscreen && (
+          <button
+            className="back-button mobile-only"
+            onClick={handleBackFromFullscreen}
+            title="Back to overlay"
+            aria-label="Back to overlay"
+          >
+            ←
+          </button>
+        )}
+        
+        {/* Collapse/Close button - only show when not fullscreen */}
+        {!isFullscreen && (
+          <button
+            className="collapse-button mobile-only"
+            onClick={() => {
+              setIsCollapsed(!isCollapsed);
+              if (isCollapsed) {
+                setIsFullscreen(false);
+              }
+            }}
+            title={isCollapsed ? 'Open menu' : 'Close menu'}
+            aria-label={isCollapsed ? 'Open menu' : 'Close menu'}
+          >
+            {isCollapsed ? '☰' : '✕'}
+          </button>
+        )}
+        
+        {/* Fullscreen toggle button (overlay mode only) */}
+        {!isCollapsed && !isFullscreen && (
+          <button
+            className="fullscreen-toggle-button mobile-only"
+            onClick={toggleFullscreen}
+            title="Expand to fullscreen"
+            aria-label="Toggle fullscreen sidebar"
+            aria-expanded="false"
+          >
+            ⛶
+          </button>
+        )}
+        
+        {/* Generate Script button (non-fullscreen only) */}
+        {!isCollapsed && !isFullscreen && (
           <button className="generate-script-button" onClick={onGenerateClick}>
             <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
             Generate Script
+          </button>
+        )}
+        
+        {/* Close button (fullscreen mode only - right side) */}
+        {isFullscreen && (
+          <button
+            className="collapse-button mobile-only"
+            onClick={() => {
+              setIsFullscreen(false);
+              setIsCollapsed(true);
+            }}
+            title="Close menu"
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
+        )}
+        
+        {/* Compress button (fullscreen mode only - right side) */}
+        {isFullscreen && (
+          <button
+            className="fullscreen-toggle-button mobile-only"
+            onClick={toggleFullscreen}
+            title="Return to overlay"
+            aria-label="Return to overlay"
+            aria-expanded="true"
+          >
+            ⤡
           </button>
         )}
       </div>
@@ -310,6 +427,14 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
             >
               <NotesIcon size={18} />
               <span>Notes</span>
+            </button>
+            <button
+              className={`sidebar-tab ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={() => onTabChange('settings')}
+              title="Settings"
+            >
+              <SettingsIcon size={18} />
+              <span>Settings</span>
             </button>
           </div>
 
@@ -615,9 +740,56 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
               )}
             </>
           )}
+
+          {/* Settings Tab - Settings Sections */}
+          {activeTab === 'settings' && (
+            <div className="settings-sidebar">
+              <div className="settings-sidebar-header">
+                <h3>Settings</h3>
+              </div>
+              <div className="settings-sections">
+                <button
+                  className={`settings-section-item ${activeSettingsSection === 'api-keys' ? 'active' : ''}`}
+                  onClick={() => onSettingsSectionChange?.('api-keys')}
+                >
+                  <ApiKeysIcon className="settings-section-icon" size={18} />
+                  <span>API Keys</span>
+                </button>
+                <button
+                  className={`settings-section-item ${activeSettingsSection === 'mcp-servers' ? 'active' : ''}`}
+                  onClick={() => onSettingsSectionChange?.('mcp-servers')}
+                >
+                  <McpServerIcon className="settings-section-icon" size={18} />
+                  <span>MCP Servers</span>
+                </button>
+                <button
+                  className={`settings-section-item ${activeSettingsSection === 'sync' ? 'active' : ''}`}
+                  onClick={() => onSettingsSectionChange?.('sync')}
+                >
+                  <SyncIcon className="settings-section-icon" size={18} />
+                  <span>Sync & Export</span>
+                </button>
+                <button
+                  className={`settings-section-item ${activeSettingsSection === 'ai-prompt' ? 'active' : ''}`}
+                  onClick={() => onSettingsSectionChange?.('ai-prompt')}
+                >
+                  <AiPromptIcon className="settings-section-icon" size={18} />
+                  <span>AI Prompt</span>
+                </button>
+                <button
+                  className={`settings-section-item ${activeSettingsSection === 'appearance' ? 'active' : ''}`}
+                  onClick={() => onSettingsSectionChange?.('appearance')}
+                >
+                  <AppearanceIcon className="settings-section-icon" size={18} />
+                  <span>Appearance</span>
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 });
 

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { EncryptionService } from '../../services/encryption';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
 import { ThemeService, ThemePreset, ThemeColors } from '../../services/themeService';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
 import './Settings.css';
 
 export interface MCPServerConfig {
@@ -25,16 +27,24 @@ export interface SettingsData {
   theme?: ThemePreset;
 }
 
+export type SettingsSection = 'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' | 'appearance';
+
 interface SettingsProps {
-  isOpen: boolean;
-  onClose: () => void;
   settings: SettingsData;
   onSave: (settings: SettingsData) => Promise<void>;
   onSync?: () => void;
   onExportCSV?: () => void;
+  activeSection?: SettingsSection;
+  onSectionChange?: (section: SettingsSection) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, onSave, onSync, onExportCSV }) => {
+export const Settings: React.FC<SettingsProps> = ({
+  settings,
+  onSave,
+  onSync,
+  onExportCSV,
+  activeSection: externalActiveSection
+}) => {
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [supabaseApiKey, setSupabaseApiKey] = useState(settings.supabaseApiKey);
   const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl);
@@ -43,7 +53,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
     JSON.stringify(settings.mcpServers, null, 2)
   );
   const [jsonError, setJsonError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' | 'appearance'>('api-keys');
+  const [internalActiveSection] = useState<SettingsSection>('api-keys');
+
+  // Use external state if provided, otherwise use internal state
+  const activeSection = externalActiveSection ?? internalActiveSection;
   const [theme, setTheme] = useState<ThemePreset | 'custom'>((settings as any).theme || 'light');
   const [useCustomTheme, setUseCustomTheme] = useState(false);
   const [customTheme, setCustomTheme] = useState<ThemeColors>(() => {
@@ -83,6 +96,8 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
   const [aiPromptLoading, setAiPromptLoading] = useState(false);
   const [aiPromptError, setAiPromptError] = useState<string>('');
   const [aiPromptSuccess, setAiPromptSuccess] = useState(false);
+  const [isEditingAiPrompt, setIsEditingAiPrompt] = useState(false);
+  const aiPromptRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setGeminiApiKey(settings.geminiApiKey);
@@ -99,12 +114,19 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, settings, o
       const customColors = ThemeService.getCurrentThemeColors();
       setCustomTheme(customColors);
     }
-    
-    // Load AI prompt from Supabase when opening settings
-    if (isOpen && activeTab === 'ai-prompt') {
+
+    // Load AI prompt from Supabase when switching to AI prompt tab
+    if (activeSection === 'ai-prompt' && supabaseUrl && supabaseApiKey && !aiPrompt) {
       loadAIPrompt();
     }
-  }, [settings, isOpen, activeTab]);
+  }, [settings, activeSection]);
+
+  // Apply syntax highlighting to AI prompt when not editing
+  useEffect(() => {
+    if (aiPromptRef.current && !isEditingAiPrompt && aiPrompt) {
+      Prism.highlightElement(aiPromptRef.current);
+    }
+  }, [aiPrompt, isEditingAiPrompt]);
 
   const loadAIPrompt = async () => {
     if (!supabaseUrl || !supabaseApiKey) {
@@ -319,7 +341,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
   const handleSave = async () => {
     let mcpServers: MCPServerConfig[] = [];
 
-    if (activeTab === 'mcp-servers') {
+    if (activeSection === 'mcp-servers') {
       const validated = validateMcpServersJson(mcpServersJson);
       if (!validated) {
         return;
@@ -338,15 +360,13 @@ Return ONLY the JSON object, no additional text or explanation.`;
       mcpServers,
       theme: useCustomTheme ? 'custom' : theme,
     } as SettingsData);
-    
+
     // Apply theme immediately
     if (useCustomTheme) {
       ThemeService.saveTheme(customTheme);
     } else {
       ThemeService.saveTheme(theme as ThemePreset);
     }
-    
-    onClose();
   };
 
   const handleMcpJsonChange = (value: string) => {
@@ -379,58 +399,11 @@ Return ONLY the JSON object, no additional text or explanation.`;
     setJsonError('');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="settings-overlay" onClick={onClose}>
-      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="settings-header">
-          <h2>Settings</h2>
-          <button className="settings-close" onClick={onClose}>
-            ×
-          </button>
-        </div>
-
-        <div className="settings-tabs">
-          <button
-            className={`settings-tab ${activeTab === 'api-keys' ? 'active' : ''}`}
-            onClick={() => setActiveTab('api-keys')}
-          >
-            API Keys
-          </button>
-          <button
-            className={`settings-tab ${activeTab === 'mcp-servers' ? 'active' : ''}`}
-            onClick={() => setActiveTab('mcp-servers')}
-          >
-            MCP Servers
-          </button>
-          <button
-            className={`settings-tab ${activeTab === 'sync' ? 'active' : ''}`}
-            onClick={() => setActiveTab('sync')}
-          >
-            Sync
-          </button>
-          <button
-            className={`settings-tab ${activeTab === 'ai-prompt' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('ai-prompt');
-              if (!aiPrompt && supabaseUrl && supabaseApiKey) {
-                loadAIPrompt();
-              }
-            }}
-          >
-            AI Prompt
-          </button>
-          <button
-            className={`settings-tab ${activeTab === 'appearance' ? 'active' : ''}`}
-            onClick={() => setActiveTab('appearance')}
-          >
-            Appearance
-          </button>
-        </div>
-
-        <div className="settings-content">
-          {activeTab === 'api-keys' && (
+    <div className="settings-container">
+      <div className="settings-content">
+        <div className="settings-main">
+          {activeSection === 'api-keys' && (
             <div className="settings-section">
               <div className="settings-field">
                 <label>
@@ -592,7 +565,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
             </div>
           )}
 
-          {activeTab === 'mcp-servers' && (
+          {activeSection === 'mcp-servers' && (
             <div className="settings-section">
               <div className="settings-field">
                 <label htmlFor="mcp-servers">
@@ -633,7 +606,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
             </div>
           )}
 
-          {activeTab === 'sync' && (
+          {activeSection === 'sync' && (
             <div className="settings-section">
               <div className="sync-info">
                 <h3>Sync Scripts Between localStorage and Supabase</h3>
@@ -694,7 +667,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
             </div>
           )}
 
-          {activeTab === 'ai-prompt' && (
+          {activeSection === 'ai-prompt' && (
             <div className="settings-section">
               <div className="settings-field">
                 <label htmlFor="ai-prompt">
@@ -706,19 +679,49 @@ Return ONLY the JSON object, no additional text or explanation.`;
                 {aiPromptLoading && !aiPrompt && (
                   <div className="settings-loading">Loading prompt...</div>
                 )}
-                <textarea
-                  id="ai-prompt"
-                  value={aiPrompt}
-                  onChange={(e) => {
-                    setAiPrompt(e.target.value);
-                    setAiPromptError('');
-                    setAiPromptSuccess(false);
-                  }}
-                  placeholder="Enter the system prompt for AI script generation..."
-                  className="settings-textarea"
-                  rows={20}
-                  disabled={aiPromptLoading}
-                />
+                {!isEditingAiPrompt && aiPrompt ? (
+                  <div style={{ position: 'relative' }}>
+                    <pre className="code-preview" style={{ minHeight: '300px', maxHeight: '500px', overflow: 'auto' }}>
+                      <code ref={aiPromptRef} className="language-markdown">
+                        {aiPrompt}
+                      </code>
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAiPrompt(true)}
+                      className="settings-btn-secondary"
+                      style={{ marginTop: '8px' }}
+                    >
+                      Edit Prompt
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <textarea
+                      id="ai-prompt"
+                      value={aiPrompt}
+                      onChange={(e) => {
+                        setAiPrompt(e.target.value);
+                        setAiPromptError('');
+                        setAiPromptSuccess(false);
+                      }}
+                      placeholder="Enter the system prompt for AI script generation..."
+                      className="settings-textarea"
+                      rows={20}
+                      disabled={aiPromptLoading}
+                    />
+                    {aiPrompt && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingAiPrompt(false)}
+                        className="settings-btn-secondary"
+                        style={{ marginTop: '8px' }}
+                      >
+                        Done Editing
+                      </button>
+                    )}
+                  </div>
+                )}
                 {aiPromptError && (
                   <div className="settings-error">{aiPromptError}</div>
                 )}
@@ -754,7 +757,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
             </div>
           )}
 
-          {activeTab === 'appearance' && (
+          {activeSection === 'appearance' && (
             <div className="settings-section">
               <div className="settings-field">
                 <label htmlFor="theme-selector">
@@ -1167,9 +1170,6 @@ Return ONLY the JSON object, no additional text or explanation.`;
         </div>
 
         <div className="settings-footer">
-          <button onClick={onClose} className="settings-btn-secondary">
-            Cancel
-          </button>
           <button onClick={handleSave} className="settings-btn-primary">
             Save Settings
           </button>

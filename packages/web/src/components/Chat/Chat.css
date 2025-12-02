@@ -114,6 +114,33 @@
   color: var(--accent-color);
 }
 
+/* Mobile: Make suggestions clickable */
+@media (max-width: 768px) {
+  .welcome-message li.clickable-suggestion {
+    cursor: pointer;
+    padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+    margin: 0.5rem -0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    color: var(--accent-color);
+    font-weight: 500;
+  }
+
+  .welcome-message li.clickable-suggestion:hover {
+    background-color: var(--bg-secondary);
+    transform: translateX(4px);
+  }
+
+  .welcome-message li.clickable-suggestion:active {
+    background-color: var(--accent-color);
+    color: white;
+  }
+
+  .welcome-message li.clickable-suggestion:active:before {
+    color: white;
+  }
+}
+
 .message {
   display: flex;
   flex-direction: column;

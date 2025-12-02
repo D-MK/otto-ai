@@ -15,14 +15,16 @@
     "@google/genai": "^1.30.0",
     "@otto-ai/core": "*",
     "@supabase/supabase-js": "^2.86.0",
+    "@types/prismjs": "^1.26.5",
     "dompurify": "^3.0.6",
+    "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@testing-library/react": "^14.1.2",
     "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
     "@types/dompurify": "^3.0.5",
     "@types/react": "^18.2.45",

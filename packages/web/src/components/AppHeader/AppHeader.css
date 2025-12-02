@@ -18,10 +18,25 @@
 @media (max-width: 768px) {
   .app-header-container {
     padding: 0.75rem 1rem;
+    justify-content: center;
+    position: relative;
   }
-  
+
   .app-header-container h2 {
     font-size: 1.1rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-title {
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+  }
+
+  .header-buttons {
+    position: absolute;
+    right: 1rem;
   }
 }
 
@@ -31,6 +46,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-title-part {
+  line-height: 1;
 }
 
 .header-buttons {

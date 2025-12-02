@@ -1,0 +1,3 @@
+# This file tells GitHub Pages not to process the site with Jekyll
+# This is necessary for Vite builds which may include files starting with underscores
+

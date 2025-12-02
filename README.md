@@ -204,18 +204,52 @@ fly secrets set VITE_MCP_AUTH_TOKEN=your-token-here
 
 Note: Vite environment variables are embedded at build time, so you'll need to rebuild and redeploy if you change them.
 
+### Deploying to GitHub Pages
+
+The app is configured for automatic deployment to GitHub Pages using GitHub Actions.
+
+**Prerequisites:**
+- GitHub repository with the code
+- GitHub Pages enabled in repository settings
+
+**Setup Steps:**
+
+1. **Enable GitHub Pages:**
+   - Go to your repository on GitHub
+   - Navigate to **Settings** → **Pages**
+   - Under **Source**, select **GitHub Actions**
+   - Save the settings
+
+2. **Deploy:**
+   - The deployment workflow will automatically run when you push to the `main` branch
+   - You can also manually trigger it from the **Actions** tab → **Deploy to GitHub Pages** → **Run workflow**
+
+3. **Access your app:**
+   - Your app will be available at `https://<username>.github.io/<repository-name>/`
+   - For example: `https://username.github.io/otto-ai/`
+
+**Custom Base Path:**
+- The workflow automatically sets the base path based on your repository name
+- If you're using a custom domain or deploying from `username.github.io`, you can override the base path by:
+  - Setting the `VITE_BASE_PATH` environment variable in your repository secrets
+  - Or modifying the workflow file to set a different base path
+
+**Manual Build (Alternative):**
+If you prefer to build and deploy manually:
+```bash
+# Build the app
+npm run build
+
+# The built files will be in packages/web/dist/
+# You can deploy this folder to GitHub Pages or any static hosting service
+```
+
 ### Other Deployment Options
 
-The app can also be deployed to any static hosting service:
+The app can also be deployed to other static hosting services:
 - **Vercel**: Connect your repository and deploy
 - **Netlify**: Connect your repository and deploy
-- **GitHub Pages**: Build and push the `dist` folder
-
-For static hosting, build the app first:
-```bash
-npm run build
-# Deploy packages/web/dist/ to your hosting service
-```
+- **Any static host**: Build the app and deploy the `packages/web/dist/` folder
 
 ## Running Tests
 

@@ -3,8 +3,17 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  max-width: 100%;
   background: var(--bg-primary);
   overflow: hidden;
+}
+
+/* Ensure settings doesn't exceed viewport on mobile */
+@media (max-width: 768px) {
+  .settings-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
 }
 
 .settings-content {

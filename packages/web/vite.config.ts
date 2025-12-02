@@ -3,7 +3,13 @@ import react from '@vitejs/plugin-react';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 
+// Base path for GitHub Pages deployment
+// Set VITE_BASE_PATH environment variable to customize (e.g., '/otto-ai/' for repository deployment)
+// Defaults to '/' for root domain deployment
+const base = process.env.VITE_BASE_PATH || '/';
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     nodePolyfills({

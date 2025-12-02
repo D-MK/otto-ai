@@ -57,7 +57,7 @@ interface ConversationState extends ConversationContext {
 
   // Notes actions
   loadNotes: () => void;
-  createNote: (params: CreateNoteParams) => void;
+  createNote: (params: CreateNoteParams) => Promise<Note | undefined>;
   updateNote: (id: string, params: UpdateNoteParams) => void;
   deleteNote: (id: string) => void;
   generateNoteTitleAndSummary: (content: string) => Promise<AIGenerationResult>;

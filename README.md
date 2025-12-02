@@ -163,7 +163,7 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 The app is configured for deployment on [Fly.io](https://fly.io).
 
 **Recent Build Fixes:**
-- ✅ Fixed TypeScript compilation errors in NoteEditor component
+- ✅ Fixed TypeScript compilation errors in NoteEditor component (fixed createNote return type mismatch)
 - ✅ Excluded test files from production TypeScript builds
 - ✅ Configured @testing-library/jest-dom matchers for Vitest test environment 
 

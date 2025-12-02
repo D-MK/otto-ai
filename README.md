@@ -148,6 +148,7 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 - ✅ Removed exposed environment variables from build
 - ✅ Production-safe logging (console disabled in production)
 - ✅ Input sanitization utilities added (DOMPurify)
+- ✅ Supabase API key encryption on save (matching Gemini API key behavior)
 
 **Remaining Work:**
 - Integrate DOMPurify into components rendering user input

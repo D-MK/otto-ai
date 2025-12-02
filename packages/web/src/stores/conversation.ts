@@ -138,10 +138,13 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
 
 const saveSettingsToStorage = async (settings: SettingsData): Promise<void> => {
   try {
-    // Encrypt geminiApiKey before storage
+    // Encrypt API keys before storage
     const settingsToSave = { ...settings };
     if (settingsToSave.geminiApiKey && !EncryptionService.isEncrypted(settingsToSave.geminiApiKey)) {
       settingsToSave.geminiApiKey = await EncryptionService.encrypt(settingsToSave.geminiApiKey);
+    }
+    if (settingsToSave.supabaseApiKey && !EncryptionService.isEncrypted(settingsToSave.supabaseApiKey)) {
+      settingsToSave.supabaseApiKey = await EncryptionService.encrypt(settingsToSave.supabaseApiKey);
     }
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settingsToSave));
   } catch (error) {

@@ -2,8 +2,9 @@
  * Authentication component for login and signup
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAuthService } from '../../services/supabaseAuth';
+import { useConversationStore } from '../../stores/conversation';
 import './Auth.css';
 
 interface AuthProps {
@@ -22,12 +23,31 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onSkip }) => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const { settings } = useConversationStore();
   const authService = getAuthService();
+
+  // Configure auth service when component mounts or settings change
+  useEffect(() => {
+    if (settings.supabaseUrl && settings.supabaseApiKey && !authService.isConfigured()) {
+      authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+    }
+  }, [settings.supabaseUrl, settings.supabaseApiKey, authService]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
+
+    // Ensure auth service is configured
+    if (!authService.isConfigured()) {
+      if (settings.supabaseUrl && settings.supabaseApiKey) {
+        authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+      } else {
+        setError('Supabase is not configured. Please set up Supabase URL and API Key in Settings.');
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const { session, error } = await authService.signIn(email, password);
@@ -52,6 +72,17 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onSkip }) => {
   const handleGitHubLogin = async () => {
     setError(null);
     setIsLoading(true);
+
+    // Ensure auth service is configured
+    if (!authService.isConfigured()) {
+      if (settings.supabaseUrl && settings.supabaseApiKey) {
+        authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+      } else {
+        setError('Supabase is not configured. Please set up Supabase URL and API Key in Settings.');
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const { error } = await authService.signInWithGitHub();
@@ -85,6 +116,17 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onSkip }) => {
       return;
     }
 
+    // Ensure auth service is configured
+    if (!authService.isConfigured()) {
+      if (settings.supabaseUrl && settings.supabaseApiKey) {
+        authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+      } else {
+        setError('Supabase is not configured. Please set up Supabase URL and API Key in Settings.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
       const { user, error } = await authService.signUp(email, password);
 
@@ -113,6 +155,17 @@ const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onSkip }) => {
     setError(null);
     setSuccessMessage(null);
     setIsLoading(true);
+
+    // Ensure auth service is configured
+    if (!authService.isConfigured()) {
+      if (settings.supabaseUrl && settings.supabaseApiKey) {
+        authService.configure(settings.supabaseUrl, settings.supabaseApiKey);
+      } else {
+        setError('Supabase is not configured. Please set up Supabase URL and API Key in Settings.');
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const { error } = await authService.resetPassword(email);

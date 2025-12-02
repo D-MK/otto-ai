@@ -242,6 +242,34 @@ npm run build
 # You can deploy this folder to GitHub Pages or any static hosting service
 ```
 
+**Configuring Supabase for GitHub Pages:**
+
+When deploying to GitHub Pages with Supabase authentication, you need to configure the Site URL correctly:
+
+1. **Set Site URL in Supabase:**
+   - Go to your Supabase project dashboard
+   - Navigate to **Authentication → URL Configuration**
+   - Set **Site URL** to your GitHub Pages URL (including the base path):
+     - Example: `https://d-mk.github.io/otto-ai/`
+     - **Important:** Include the trailing slash and the repository name path
+   - Add the same URL to **Redirect URLs** (allowed redirect URLs list)
+
+2. **Configure GitHub OAuth (if using):**
+   - In your GitHub OAuth App settings, set the **Authorization callback URL** to:
+     - `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
+     - Replace `YOUR_PROJECT` with your Supabase project reference ID
+   - Copy the Client ID and Client Secret to Supabase **Authentication → Providers → GitHub**
+
+3. **Enable Authentication Providers:**
+   - In Supabase, go to **Authentication → Providers**
+   - Enable **Email** provider (required for email/password login)
+   - Optionally enable **GitHub** provider if you want OAuth login
+
+**Common Issues:**
+- **"Invalid redirect URL"**: Make sure the Site URL in Supabase matches your GitHub Pages URL exactly, including the base path (e.g., `/otto-ai/`)
+- **"Authorization path mismatch"**: Ensure the Site URL includes the full path, not just the domain
+- **OAuth not working**: Verify the GitHub OAuth callback URL is set to your Supabase callback URL, not your app URL
+
 ### Other Deployment Options
 
 The app can also be deployed to other static hosting services:

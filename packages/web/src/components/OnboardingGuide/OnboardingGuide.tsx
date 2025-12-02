@@ -62,6 +62,27 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
               <div className="onboarding-step">
                 <div className="step-number">2.5</div>
                 <div className="step-content">
+                  <h4>Configure Site URL</h4>
+                  <p>In your Supabase project, go to <strong>Authentication → URL Configuration</strong> and set:</p>
+                  <ul>
+                    <li><strong>Site URL</strong>: Your app's full URL
+                      <ul>
+                        <li>For GitHub Pages: <code>https://YOUR_USERNAME.github.io/REPO_NAME/</code></li>
+                        <li>For custom domain: <code>https://yourdomain.com</code></li>
+                        <li>For local development: <code>http://localhost:3000</code></li>
+                      </ul>
+                    </li>
+                    <li><strong>Redirect URLs</strong>: Add your app URL (same as Site URL) to the allowed redirect URLs list</li>
+                  </ul>
+                  <p className="onboarding-note" style={{ marginTop: '0.5rem' }}>
+                    <strong>Important:</strong> The Site URL must match your app's deployment URL exactly, including the base path (e.g., <code>/otto-ai/</code> for GitHub Pages).
+                  </p>
+                </div>
+              </div>
+
+              <div className="onboarding-step">
+                <div className="step-number">2.6</div>
+                <div className="step-content">
                   <h4>Enable Authentication Providers</h4>
                   <p>In your Supabase project, go to <strong>Authentication → Providers</strong> and enable:</p>
                   <ul>

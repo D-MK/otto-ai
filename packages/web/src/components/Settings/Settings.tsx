@@ -30,6 +30,38 @@ export interface SettingsData {
 
 export type SettingsSection = 'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' | 'appearance';
 
+/**
+ * Extract project name from Supabase URL
+ * Handles both full URLs and just project names
+ */
+function extractSupabaseProjectName(url: string): string {
+  if (!url) return '';
+  
+  // If it's already just a project name (no https:// or .supabase.co), return as-is
+  if (!url.includes('://') && !url.includes('.')) {
+    return url.trim();
+  }
+  
+  // Extract from full URL: https://project.supabase.co
+  const match = url.match(/https?:\/\/([^.]+)\.supabase\.co/);
+  if (match) {
+    return match[1];
+  }
+  
+  // If it doesn't match the pattern, try to extract any alphanumeric project-like string
+  const projectMatch = url.match(/([a-z0-9-]+)/i);
+  return projectMatch ? projectMatch[1] : url.trim();
+}
+
+/**
+ * Build full Supabase URL from project name
+ */
+function buildSupabaseUrl(projectName: string): string {
+  if (!projectName) return '';
+  const cleanName = projectName.trim().replace(/^https?:\/\//, '').replace(/\.supabase\.co.*$/, '');
+  return `https://${cleanName}.supabase.co`;
+}
+
 interface SettingsProps {
   settings: SettingsData;
   onSave: (settings: SettingsData) => Promise<void>;
@@ -56,7 +88,10 @@ export const Settings: React.FC<SettingsProps> = ({
 }) => {
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [supabaseApiKey, setSupabaseApiKey] = useState(settings.supabaseApiKey);
-  const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl);
+  // Store just the project name in the input field
+  const [supabaseProjectName, setSupabaseProjectName] = useState(
+    extractSupabaseProjectName(settings.supabaseUrl)
+  );
   const [supabaseUrlError, setSupabaseUrlError] = useState<string>('');
   const [storageMode, setStorageMode] = useState<StorageMode>(settings.storageMode || 'localStorage');
   const [mcpServersJson, setMcpServersJson] = useState(
@@ -112,7 +147,7 @@ export const Settings: React.FC<SettingsProps> = ({
   useEffect(() => {
     setGeminiApiKey(settings.geminiApiKey);
     setSupabaseApiKey(settings.supabaseApiKey);
-    setSupabaseUrl(settings.supabaseUrl);
+    setSupabaseProjectName(extractSupabaseProjectName(settings.supabaseUrl));
     setStorageMode(settings.storageMode || 'localStorage');
     setMcpServersJson(JSON.stringify(settings.mcpServers, null, 2));
     setJsonError('');
@@ -126,7 +161,8 @@ export const Settings: React.FC<SettingsProps> = ({
     }
 
     // Load AI prompt from Supabase when switching to AI prompt tab
-    if (activeSection === 'ai-prompt' && supabaseUrl && supabaseApiKey && !aiPrompt) {
+    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
+    if (activeSection === 'ai-prompt' && fullSupabaseUrl && supabaseApiKey && !aiPrompt) {
       loadAIPrompt();
     }
   }, [settings, activeSection]);
@@ -139,8 +175,9 @@ export const Settings: React.FC<SettingsProps> = ({
   }, [aiPrompt, isEditingAiPrompt]);
 
   const loadAIPrompt = async () => {
-    if (!supabaseUrl || !supabaseApiKey) {
-      setAiPromptError('Please configure Supabase URL and API key first');
+    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
+    if (!fullSupabaseUrl || !supabaseApiKey) {
+      setAiPromptError('Please configure Supabase project name and API key first');
       return;
     }
 
@@ -149,7 +186,7 @@ export const Settings: React.FC<SettingsProps> = ({
     setAiPromptSuccess(false);
 
     try {
-      const supabaseStorage = new SupabaseStorageService(supabaseUrl, supabaseApiKey);
+      const supabaseStorage = new SupabaseStorageService(fullSupabaseUrl, supabaseApiKey);
       const config = await supabaseStorage.getAIConfig('default');
       
       if (config) {
@@ -202,8 +239,9 @@ Return ONLY the JSON object, no additional text or explanation.`;
   };
 
   const handleSaveAIPrompt = async () => {
-    if (!supabaseUrl || !supabaseApiKey) {
-      setAiPromptError('Please configure Supabase URL and API key first');
+    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
+    if (!fullSupabaseUrl || !supabaseApiKey) {
+      setAiPromptError('Please configure Supabase project name and API key first');
       return;
     }
 
@@ -217,7 +255,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
     setAiPromptSuccess(false);
 
     try {
-      const supabaseStorage = new SupabaseStorageService(supabaseUrl, supabaseApiKey);
+      const supabaseStorage = new SupabaseStorageService(fullSupabaseUrl, supabaseApiKey);
       
       // Try to update existing config, or create new one
       const existingConfig = await supabaseStorage.getAIConfig('default');
@@ -362,18 +400,21 @@ Return ONLY the JSON object, no additional text or explanation.`;
       mcpServers = settings.mcpServers;
     }
 
-    // Validate Supabase URL format
-    if (supabaseUrl && !supabaseUrl.match(/^https?:\/\/[^.]+\.supabase\.co\/?$/)) {
-      setSupabaseUrlError('Invalid Supabase URL format. Should be: https://your-project.supabase.co');
+    // Validate Supabase project name
+    if (supabaseProjectName && !supabaseProjectName.match(/^[a-z0-9-]+$/i)) {
+      setSupabaseUrlError('Invalid project name. Use only letters, numbers, and hyphens.');
       return;
     } else {
       setSupabaseUrlError('');
     }
 
+    // Convert project name to full URL
+    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
+
     await onSave({
       geminiApiKey,
       supabaseApiKey,
-      supabaseUrl,
+      supabaseUrl: fullSupabaseUrl,
       storageMode,
       mcpServers,
       theme: useCustomTheme ? 'custom' : theme,
@@ -520,24 +561,29 @@ Return ONLY the JSON object, no additional text or explanation.`;
               </div>
 
               <div className="settings-field">
-                <label htmlFor="supabase-url">
-                  Supabase URL
-                  <span className="settings-field-hint">Your Supabase project URL</span>
+                <label htmlFor="supabase-project">
+                  Supabase Project Name
+                  <span className="settings-field-hint">Your Supabase project name (e.g., xdsytzwjxujybxemclpz)</span>
                 </label>
-                <input
-                  id="supabase-url"
-                  type="text"
-                  value={supabaseUrl}
-                  onChange={(e) => {
-                    setSupabaseUrl(e.target.value);
-                    // Clear error when user starts typing
-                    if (supabaseUrlError) {
-                      setSupabaseUrlError('');
-                    }
-                  }}
-                  placeholder="https://your-project.supabase.co"
-                  className={`settings-input ${supabaseUrlError ? 'settings-input-error' : ''}`}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>https://</span>
+                  <input
+                    id="supabase-project"
+                    type="text"
+                    value={supabaseProjectName}
+                    onChange={(e) => {
+                      setSupabaseProjectName(e.target.value);
+                      // Clear error when user starts typing
+                      if (supabaseUrlError) {
+                        setSupabaseUrlError('');
+                      }
+                    }}
+                    placeholder="your-project"
+                    className={`settings-input ${supabaseUrlError ? 'settings-input-error' : ''}`}
+                    style={{ flex: 1 }}
+                  />
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>.supabase.co</span>
+                </div>
                 {supabaseUrlError && (
                   <div className="settings-error" style={{ marginTop: '0.5rem' }}>
                     {supabaseUrlError}
@@ -579,15 +625,15 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     type="button"
                     className={`storage-mode-btn ${storageMode === 'supabase' ? 'active' : ''}`}
                     onClick={() => setStorageMode('supabase')}
-                    disabled={!supabaseUrl || !supabaseApiKey}
-                    title={!supabaseUrl || !supabaseApiKey ? 'Configure Supabase URL and API key first' : ''}
+                    disabled={!supabaseProjectName || !supabaseApiKey}
+                    title={!supabaseProjectName || !supabaseApiKey ? 'Configure Supabase project name and API key first' : ''}
                   >
                     Supabase
                   </button>
                 </div>
-                {storageMode === 'supabase' && (!supabaseUrl || !supabaseApiKey) && (
+                {storageMode === 'supabase' && (!supabaseProjectName || !supabaseApiKey) && (
                   <div className="settings-warning">
-                    Please configure Supabase URL and API key above to use Supabase storage.
+                    Please configure Supabase project name and API key above to use Supabase storage.
                   </div>
                 )}
               </div>
@@ -646,7 +692,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
               </div>
 
               {/* Authentication Status */}
-              {supabaseUrl && supabaseApiKey && (
+              {supabaseProjectName && supabaseApiKey && (
                 <div className="auth-status-section" style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                   <h4 style={{ marginTop: 0, marginBottom: '12px', fontSize: '16px' }}>Authentication Status</h4>
                   {isAuthenticated ? (
@@ -688,14 +734,14 @@ Return ONLY the JSON object, no additional text or explanation.`;
                 </div>
               )}
 
-              {(!supabaseUrl || !supabaseApiKey) && (
+              {(!supabaseProjectName || !supabaseApiKey) && (
                 <div className="settings-warning">
                   <strong>Supabase Not Configured</strong>
                   <p>Please configure your Supabase URL and API key in the API Keys tab before syncing.</p>
                 </div>
               )}
 
-              {supabaseUrl && supabaseApiKey && (
+              {supabaseProjectName && supabaseApiKey && (
                 <div className="sync-actions">
                   <button
                     type="button"
@@ -802,7 +848,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     ✓ Prompt saved successfully to Supabase
                   </div>
                 )}
-                {(!supabaseUrl || !supabaseApiKey) && (
+                {(!supabaseProjectName || !supabaseApiKey) && (
                   <div className="settings-warning" style={{ marginTop: '8px' }}>
                     Please configure Supabase URL and API key in the API Keys tab to save the prompt.
                   </div>
@@ -812,7 +858,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     type="button"
                     onClick={handleSaveAIPrompt}
                     className="settings-btn-primary"
-                    disabled={aiPromptLoading || !supabaseUrl || !supabaseApiKey || !aiPrompt.trim()}
+                    disabled={aiPromptLoading || !supabaseProjectName || !supabaseApiKey || !aiPrompt.trim()}
                   >
                     {aiPromptLoading ? 'Saving...' : 'Save Prompt to Supabase'}
                   </button>
@@ -820,7 +866,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     type="button"
                     onClick={loadAIPrompt}
                     className="settings-btn-secondary"
-                    disabled={aiPromptLoading || !supabaseUrl || !supabaseApiKey}
+                    disabled={aiPromptLoading || !supabaseProjectName || !supabaseApiKey}
                   >
                     Reload from Supabase
                   </button>

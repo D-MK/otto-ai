@@ -3,7 +3,7 @@
  */
 
 import { createClient, SupabaseClient, AuthError } from '@supabase/supabase-js';
-import { getBaseUrl, getUrl } from '../utils/url';
+import { getUrl } from '../utils/url';
 
 export interface AuthUser {
   id: string;

@@ -106,6 +106,24 @@ export class SupabaseAuthService {
   }
 
   /**
+   * Sign in with GitHub OAuth
+   */
+  async signInWithGitHub(): Promise<{ error: AuthError | null }> {
+    if (!this.client) {
+      return { error: new Error('Supabase not configured') as AuthError };
+    }
+
+    const { error } = await this.client.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+
+    return { error };
+  }
+
+  /**
    * Sign out
    */
   async signOut(): Promise<{ error: AuthError | null }> {

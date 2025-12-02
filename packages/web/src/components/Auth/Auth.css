@@ -83,6 +83,63 @@
   cursor: not-allowed;
 }
 
+.auth-form .github-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  background: #24292e;
+  color: white;
+  border: 2px solid #24292e;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-form .github-button:hover:not(:disabled) {
+  background: #1a1e22;
+  border-color: #1a1e22;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(36, 41, 46, 0.4);
+}
+
+.auth-form .github-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-form .github-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-form .github-button svg {
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: #999;
+  font-size: 14px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.auth-divider span {
+  padding: 0 12px;
+}
+
 .auth-form .primary-button {
   padding: 14px 24px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -74,6 +74,14 @@
   border-color: var(--accent-color);
 }
 
+.settings-input-error {
+  border-color: #e74c3c !important;
+}
+
+.settings-input-error:focus {
+  border-color: #e74c3c !important;
+}
+
 .settings-textarea {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   resize: vertical;

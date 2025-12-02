@@ -152,6 +152,7 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 - ✅ Replaced all console.log/warn/error with production-safe logger utility
 - ✅ Fixed Auth component to properly configure Supabase before authentication operations
 - ✅ Added URL utility for correct redirect handling on GitHub Pages deployments with automatic base path detection
+- ✅ Added Supabase URL validation to prevent common typos (e.g., supabase.c vs supabase.co)
 
 **Remaining Work:**
 - Integrate DOMPurify into components rendering user input

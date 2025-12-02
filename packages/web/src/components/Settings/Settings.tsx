@@ -57,6 +57,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [supabaseApiKey, setSupabaseApiKey] = useState(settings.supabaseApiKey);
   const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl);
+  const [supabaseUrlError, setSupabaseUrlError] = useState<string>('');
   const [storageMode, setStorageMode] = useState<StorageMode>(settings.storageMode || 'localStorage');
   const [mcpServersJson, setMcpServersJson] = useState(
     JSON.stringify(settings.mcpServers, null, 2)
@@ -361,6 +362,14 @@ Return ONLY the JSON object, no additional text or explanation.`;
       mcpServers = settings.mcpServers;
     }
 
+    // Validate Supabase URL format
+    if (supabaseUrl && !supabaseUrl.match(/^https?:\/\/[^.]+\.supabase\.co\/?$/)) {
+      setSupabaseUrlError('Invalid Supabase URL format. Should be: https://your-project.supabase.co');
+      return;
+    } else {
+      setSupabaseUrlError('');
+    }
+
     await onSave({
       geminiApiKey,
       supabaseApiKey,
@@ -519,10 +528,21 @@ Return ONLY the JSON object, no additional text or explanation.`;
                   id="supabase-url"
                   type="text"
                   value={supabaseUrl}
-                  onChange={(e) => setSupabaseUrl(e.target.value)}
+                  onChange={(e) => {
+                    setSupabaseUrl(e.target.value);
+                    // Clear error when user starts typing
+                    if (supabaseUrlError) {
+                      setSupabaseUrlError('');
+                    }
+                  }}
                   placeholder="https://your-project.supabase.co"
-                  className="settings-input"
+                  className={`settings-input ${supabaseUrlError ? 'settings-input-error' : ''}`}
                 />
+                {supabaseUrlError && (
+                  <div className="settings-error" style={{ marginTop: '0.5rem' }}>
+                    {supabaseUrlError}
+                  </div>
+                )}
               </div>
 
               <div className="settings-field">

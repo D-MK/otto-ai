@@ -160,7 +160,12 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 
 ### Deploying to Fly.io
 
-The app is configured for deployment on [Fly.io](https://fly.io). 
+The app is configured for deployment on [Fly.io](https://fly.io).
+
+**Recent Build Fixes:**
+- ✅ Fixed TypeScript compilation errors in NoteEditor component
+- ✅ Excluded test files from production TypeScript builds
+- ✅ Configured @testing-library/jest-dom matchers for Vitest test environment 
 
 **Prerequisites:**
 - [Fly.io CLI](https://fly.io/docs/getting-started/installing-flyctl/) installed

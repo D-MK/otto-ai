@@ -156,8 +156,13 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onCancel, onDelet
         linkedNoteIds,
       });
       
+      if (!createdNote) {
+        alert('Failed to create note');
+        return;
+      }
+      
       // Update note with summary if provided
-      if (createdNote !== undefined && finalSummary) {
+      if (finalSummary) {
         updateNote(createdNote.id, { summary: finalSummary });
         const updatedNote = noteStorage?.get(createdNote.id);
         if (updatedNote) {

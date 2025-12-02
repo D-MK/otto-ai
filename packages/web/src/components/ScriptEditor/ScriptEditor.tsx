@@ -28,6 +28,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
     if (propSelectedScript) {
       setSelectedScript(propSelectedScript);
       setIsEditing(true);
+      setIsEditingCode(false); // Start in view mode for code
       setName(propSelectedScript.name);
       setDescription(propSelectedScript.description);
       setTags(propSelectedScript.tags.join(', '));
@@ -38,6 +39,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
       setParameters(propSelectedScript.parameters);
     } else {
       setIsEditing(false);
+      setIsEditingCode(false);
       resetForm();
     }
   }, [propSelectedScript]);
@@ -51,14 +53,21 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
   const [code, setCode] = useState('');
   const [mcpEndpoint, setMcpEndpoint] = useState('');
   const [parameters, setParameters] = useState<ParameterDef[]>([]);
+  const [isEditingCode, setIsEditingCode] = useState(false);
   const codeRef = useRef<HTMLElement>(null);
 
-  // Apply syntax highlighting when code changes (always show highlighting when not editing)
+  // Apply syntax highlighting when code changes (always show highlighting when not editing code)
   useEffect(() => {
-    if (codeRef.current && !isEditing) {
-      Prism.highlightElement(codeRef.current);
+    if (codeRef.current && !isEditingCode) {
+      // Use setTimeout to ensure DOM is updated before highlighting
+      const timer = setTimeout(() => {
+        if (codeRef.current) {
+          Prism.highlightElement(codeRef.current);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [code, isEditing]);
+  }, [code, isEditingCode]);
 
   const handleNewScript = () => {
     if (onScriptChange) {
@@ -66,6 +75,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
     }
     setSelectedScript(null);
     setIsEditing(true);
+    setIsEditingCode(true); // Start in edit mode for new scripts
     resetForm();
   };
 
@@ -265,17 +275,41 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
 
               {executionType === 'local' && (
                 <div className="form-group">
-                  <label>Code</label>
-                  {isEditing ? (
-                    <textarea
-                      value={code}
-                      onChange={e => setCode(e.target.value)}
-                      placeholder="return 'Hello, ' + name;"
-                      rows={8}
-                      className="code-textarea"
-                    />
+                  <div className="section-header">
+                    <label>Code</label>
+                    {!isEditingCode && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingCode(true)}
+                        className="edit-code-button"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                  {isEditingCode ? (
+                    <div>
+                      <textarea
+                        value={code}
+                        onChange={e => setCode(e.target.value)}
+                        placeholder="return 'Hello, ' + name;"
+                        rows={8}
+                        className="code-textarea"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingCode(false)}
+                        className="save-code-button"
+                      >
+                        Done Editing
+                      </button>
+                    </div>
                   ) : (
-                    <pre className="code-preview">
+                    <pre 
+                      className="code-preview"
+                      onClick={() => setIsEditingCode(true)}
+                      title="Click to edit"
+                    >
                       <code ref={codeRef} className="language-javascript">
                         {code || '// No code yet...'}
                       </code>

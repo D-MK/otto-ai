@@ -613,10 +613,38 @@
   max-height: 400px;
   overflow-y: auto;
   margin: 0;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.code-preview:hover {
+  background-color: #353535;
+  border-color: var(--accent-color, #4a90e2);
 }
 
 .code-preview code {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.edit-code-button,
+.save-code-button {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  background-color: var(--accent-color, #4a90e2);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-code-button:hover,
+.save-code-button:hover {
+  background-color: var(--accent-color-hover, #357abd);
+}
+
+.save-code-button {
+  margin-top: 0.5rem;
 }

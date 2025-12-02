@@ -50,8 +50,6 @@ The app will be available at `http://localhost:3000`.
 
 The app comes with several example scripts. See the [Adding Scripts guide](docs/guides/adding-scripts.md) for details on creating and managing scripts.
 
-**Note:** The Insulin Calculator script has been removed from the default seed scripts. If you need it, you can import it from `seed-data/insulin-calculator-for-supabase.json` into your Supabase account using the app's script import feature, or add it manually through the Script Editor UI.
-
 ## AI Script Generator
 
 The app includes an AI-powered script generator that can create scripts automatically from natural language descriptions.

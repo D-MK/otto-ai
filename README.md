@@ -151,7 +151,7 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 - ✅ Supabase API key encryption on save (matching Gemini API key behavior)
 - ✅ Replaced all console.log/warn/error with production-safe logger utility
 - ✅ Fixed Auth component to properly configure Supabase before authentication operations
-- ✅ Added URL utility for correct redirect handling on GitHub Pages deployments
+- ✅ Added URL utility for correct redirect handling on GitHub Pages deployments with automatic base path detection
 
 **Remaining Work:**
 - Integrate DOMPurify into components rendering user input
@@ -273,6 +273,8 @@ When deploying to GitHub Pages with Supabase authentication, you need to configu
 - **"Invalid redirect URL"**: Make sure the Site URL in Supabase matches your GitHub Pages URL exactly, including the base path (e.g., `/otto-ai/`)
 - **"Authorization path mismatch"**: Ensure the Site URL includes the full path, not just the domain
 - **OAuth not working**: Verify the GitHub OAuth callback URL is set to your Supabase callback URL, not your app URL
+- **"Unable to exchange external code"**: This error means the Client Secret in Supabase is incorrect - regenerate it in GitHub and update Supabase
+- **OAuth 404 on redirect**: Make sure the GitHub OAuth Client ID (not a placeholder) is entered in Supabase → Authentication → Providers → GitHub
 
 ### Other Deployment Options
 

@@ -221,11 +221,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
       const supabaseScripts = await this.supabaseStorage.getAllScripts();
       console.log(`Found ${supabaseScripts.length} scripts in Supabase`);
 
-      // Get current local scripts
-      const localScripts = this.getAll();
-      const localScriptIds = new Set(localScripts.map(s => s.id));
-
-      // Load scripts that don't exist locally
+      // Load scripts from Supabase
       for (const supabaseScript of supabaseScripts) {
         try {
           // Validate required fields
@@ -241,7 +237,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
             tags: supabaseScript.tags || [],
             triggerPhrases: supabaseScript.triggerPhrases || [],
             parameters: supabaseScript.parameters || [],
-            executionType: supabaseScript.executionType,
+            executionType: supabaseScript.executionType as any,
             code: supabaseScript.code,
             mcpEndpoint: supabaseScript.mcpEndpoint,
             createdAt: new Date(supabaseScript.createdAt),

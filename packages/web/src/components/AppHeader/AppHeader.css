@@ -123,35 +123,37 @@
   }
 }
 
-/* User Menu Styles */
-.user-menu-container {
+/* Help Menu Styles */
+.help-menu-container {
   position: relative;
 }
 
-.user-button {
+.help-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 
-.user-button:hover {
+.help-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Smaller user button on mobile */
+/* Smaller help button on mobile */
 @media (max-width: 768px) {
-  .user-button {
-    font-size: 1.25rem;
+  .help-button {
     padding: 0.25rem 0.4rem;
   }
 }
 
-.user-menu {
+.help-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
@@ -159,40 +161,45 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
+  min-width: 220px;
   max-width: 280px;
   z-index: 1000;
   overflow: hidden;
 }
 
-/* Ensure user menu doesn't overflow viewport on mobile */
+/* Ensure help menu doesn't overflow viewport on mobile */
 @media (max-width: 768px) {
-  .user-menu {
+  .help-menu {
     right: -0.5rem;
-    min-width: 180px;
+    min-width: 200px;
     max-width: calc(100vw - 2rem);
   }
 }
 
 @media (max-width: 480px) {
-  .user-menu {
+  .help-menu {
     right: -0.5rem;
-    min-width: 160px;
+    min-width: 180px;
     max-width: calc(100vw - 1.5rem);
   }
 }
 
-.user-menu-email {
+.help-menu-email {
   padding: 0.75rem 1rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
-  border-bottom: 1px solid var(--border-color);
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
 }
 
-.user-menu-item {
+.help-menu-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.help-menu-item {
   display: block;
   width: 100%;
   padding: 0.75rem 1rem;
@@ -205,7 +212,7 @@
   transition: background-color 0.2s;
 }
 
-.user-menu-item:hover {
+.help-menu-item:hover {
   background-color: var(--bg-secondary);
 }
 

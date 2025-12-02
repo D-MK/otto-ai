@@ -44,7 +44,8 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
   
   // Chat tab - scripts list state
   const [chatSelectedTags, setChatSelectedTags] = useState<Set<string>>(new Set());
-  
+  const [expandedTagsScripts, setExpandedTagsScripts] = useState<Set<string>>(new Set());
+
   // Scripts tab - manager state
   const [scriptsSearchQuery, setScriptsSearchQuery] = useState('');
   const [scriptsSortBy, setScriptsSortBy] = useState<SortOption>((settings as any)?.scriptSortPreference || 'name-asc');
@@ -248,6 +249,21 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
     return words.join(' ');
   };
 
+  const toggleTagsExpansion = (scriptId: string) => {
+    const newExpanded = new Set(expandedTagsScripts);
+    if (newExpanded.has(scriptId)) {
+      newExpanded.delete(scriptId);
+    } else {
+      newExpanded.add(scriptId);
+    }
+    setExpandedTagsScripts(newExpanded);
+  };
+
+  const truncateDescription = (text: string, maxLength: number = 100): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
@@ -261,7 +277,7 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
         {!isCollapsed && (
           <button className="generate-script-button" onClick={onGenerateClick}>
             <MagicWandIcon size={16} style={{ marginRight: '0.5rem' }} />
-            Generate New Script
+            Generate Script
           </button>
         )}
       </div>
@@ -356,7 +372,7 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
                       title={`Click to use: "${script.triggerPhrases[0] || script.name}"`}
                     >
                       <div className="script-name">{script.name}</div>
-                      <div className="script-description">{script.description}</div>
+                      <div className="script-description">{truncateDescription(script.description)}</div>
                       <div className="keywords">
                         {script.triggerPhrases.slice(0, 2).map((trigger: string, idx: number) => (
                           <button
@@ -373,11 +389,25 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
                         ))}
                       </div>
                       <div className="script-tags">
-                        {script.tags.map((tag: string, idx: number) => (
+                        {(expandedTagsScripts.has(script.id) ? script.tags : script.tags.slice(0, 2)).map((tag: string, idx: number) => (
                           <span key={idx} className="tag">
                             {tag}
                           </span>
                         ))}
+                        {script.tags.length > 2 && (
+                          <span
+                            className="tag tag-more"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTagsExpansion(script.id);
+                            }}
+                            style={{ cursor: 'pointer', fontWeight: 500 }}
+                          >
+                            {expandedTagsScripts.has(script.id)
+                              ? '- show less'
+                              : `+ ${script.tags.length - 2} more`}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))

@@ -15,6 +15,7 @@ help:
 
 # Run the web app in development mode
 dev:
+	@echo "Starting development server..."
 	npm run dev
 
 # Build all packages
@@ -31,7 +32,11 @@ lint:
 
 # Install dependencies
 install:
+	@echo "Checking Node version (requires Node 20+)..."
+	@node --version | grep -qE "v(2[0-9]|[3-9][0-9])" || (echo "Error: Node.js 20+ required. Current: $$(node --version)" && exit 1)
+	@echo "Installing dependencies (workspace mode)..."
 	npm install
+	@echo "Dependencies installed successfully"
 
 # Clean node_modules and reinstall
 clean:

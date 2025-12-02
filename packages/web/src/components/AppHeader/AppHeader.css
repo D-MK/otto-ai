@@ -9,7 +9,9 @@
   padding: 1rem 1.5rem;
   background-color: var(--chat-header-bg, var(--accent-color));
   color: white;
-  border-bottom: 2px solid var(--accent-hover);
+  border-bottom: none;
+  height: 60px;
+  box-sizing: border-box;
 }
 
 /* Mobile adjustments for app header */

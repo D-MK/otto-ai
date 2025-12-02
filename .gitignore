@@ -41,3 +41,7 @@ coverage/
 *.tmp
 .cache/
 scratch.txt
+
+# Bin symlinks
+.bin/
+packages/.bin/

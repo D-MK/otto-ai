@@ -202,4 +202,92 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
 
     return { success, failed };
   }
+
+  /**
+   * Load scripts from Supabase and populate local storage
+   * Useful when signing in on a new device
+   */
+  async loadFromSupabase(): Promise<{ loaded: number; failed: number }> {
+    if (!this.isSupabaseSyncEnabled() || !this.supabaseStorage) {
+      console.warn('Supabase sync not enabled, cannot load scripts');
+      return { loaded: 0, failed: 0 };
+    }
+
+    let loaded = 0;
+    let failed = 0;
+
+    try {
+      // Get all scripts from Supabase
+      const supabaseScripts = await this.supabaseStorage.getAllScripts();
+      console.log(`Found ${supabaseScripts.length} scripts in Supabase`);
+
+      // Get current local scripts
+      const localScripts = this.getAll();
+      const localScriptIds = new Set(localScripts.map(s => s.id));
+
+      // Load scripts that don't exist locally
+      for (const supabaseScript of supabaseScripts) {
+        try {
+          // Validate required fields
+          if (!supabaseScript.id || !supabaseScript.name || !supabaseScript.description) {
+            throw new Error('Missing required fields: id, name, or description');
+          }
+
+          // Convert Supabase format to Script format
+          const script: Script = {
+            id: supabaseScript.id,
+            name: supabaseScript.name,
+            description: supabaseScript.description,
+            tags: supabaseScript.tags || [],
+            triggerPhrases: supabaseScript.triggerPhrases || [],
+            parameters: supabaseScript.parameters || [],
+            executionType: supabaseScript.executionType,
+            code: supabaseScript.code,
+            mcpEndpoint: supabaseScript.mcpEndpoint,
+            createdAt: new Date(supabaseScript.createdAt),
+            updatedAt: new Date(supabaseScript.updatedAt),
+          };
+
+          // Use upsert to add or update the script locally
+          // This won't trigger a sync back to Supabase since it already exists there
+          super.upsert(script);
+          loaded++;
+        } catch (error) {
+          console.error(`Failed to load script ${supabaseScript.name}:`, error);
+          failed++;
+        }
+      }
+
+      console.log(`Loaded ${loaded} scripts from Supabase, ${failed} failed`);
+    } catch (error) {
+      console.error('Failed to load scripts from Supabase:', error);
+      return { loaded: 0, failed: 1 };
+    }
+
+    return { loaded, failed };
+  }
+
+  /**
+   * Check if local storage is empty and Supabase has scripts
+   * Returns true if we should load from Supabase
+   */
+  async shouldLoadFromSupabase(): Promise<boolean> {
+    if (!this.isSupabaseSyncEnabled() || !this.supabaseStorage) {
+      return false;
+    }
+
+    const localScripts = this.getAll();
+    if (localScripts.length > 0) {
+      // Already have local scripts, no need to load
+      return false;
+    }
+
+    try {
+      const supabaseScripts = await this.supabaseStorage.getAllScripts();
+      return supabaseScripts.length > 0;
+    } catch (error) {
+      console.error('Failed to check Supabase scripts:', error);
+      return false;
+    }
+  }
 }

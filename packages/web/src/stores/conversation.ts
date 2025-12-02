@@ -549,6 +549,30 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
         // Load user settings from Supabase
         await get().loadUserSettings(session.user.id);
+
+        // Load scripts from Supabase if local storage is empty
+        const { scriptStorage, router } = get();
+        if (scriptStorage instanceof SyncedScriptStorage) {
+          try {
+            const shouldLoad = await scriptStorage.shouldLoadFromSupabase();
+            if (shouldLoad) {
+              logger.log('Loading scripts from Supabase...');
+              const result = await scriptStorage.loadFromSupabase();
+              logger.log(`Loaded ${result.loaded} scripts from Supabase`);
+
+              // Refresh the router with the loaded scripts
+              if (router) {
+                router.refreshScripts();
+              }
+
+              // Reload scripts in the store
+              const scripts = scriptStorage.getAll();
+              set({ scripts });
+            }
+          } catch (error) {
+            logger.error('Failed to load scripts from Supabase:', error);
+          }
+        }
       } else {
         set({
           currentUser: null,
@@ -577,6 +601,31 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
     // Reinitialize with loaded settings
     get().reinitializeWithSettings();
+
+    // Load scripts from Supabase if local storage is empty
+    const { scriptStorage } = get();
+    if (scriptStorage instanceof SyncedScriptStorage) {
+      try {
+        const shouldLoad = await scriptStorage.shouldLoadFromSupabase();
+        if (shouldLoad) {
+          logger.log('Loading scripts from Supabase...');
+          const result = await scriptStorage.loadFromSupabase();
+          logger.log(`Loaded ${result.loaded} scripts from Supabase`);
+
+          // Refresh the router with the loaded scripts
+          const router = get().router;
+          if (router) {
+            router.refreshScripts();
+          }
+
+          // Reload scripts in the store
+          const scripts = scriptStorage.getAll();
+          set({ scripts });
+        }
+      } catch (error) {
+        logger.error('Failed to load scripts from Supabase:', error);
+      }
+    }
   },
 
   logout: async () => {

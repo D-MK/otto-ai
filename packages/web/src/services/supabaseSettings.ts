@@ -5,6 +5,7 @@
 
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import type { SettingsData } from '../components/Settings/Settings';
+import { logger } from '../utils/logger';
 
 export interface UserSettings extends SettingsData {
   userId: string;
@@ -31,8 +32,8 @@ export class SupabaseSettingsService {
     if (error && error.message.includes('does not exist')) {
       // Table doesn't exist, we need to create it
       // Note: In production, you should create this via Supabase migrations
-      console.warn('user_settings table does not exist. Please create it in your Supabase dashboard with the following SQL:');
-      console.warn(`
+      logger.warn('user_settings table does not exist. Please create it in your Supabase dashboard with the following SQL:');
+      logger.warn(`
 CREATE TABLE user_settings (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   gemini_api_key TEXT,

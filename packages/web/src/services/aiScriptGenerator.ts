@@ -5,6 +5,7 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { EncryptionService } from './encryption';
+import { logger } from '../utils/logger';
 
 export type AIProvider = 'gemini' | 'claude';
 
@@ -178,9 +179,9 @@ export class AIScriptGenerator {
           if (decrypted === null) {
             // Check if it's password-encrypted and password is not set
             if (EncryptionService.isPasswordEncrypted(config.apiKey) && !EncryptionService.hasMasterPassword()) {
-              console.warn('Password-encrypted key found but no password set. User needs to enter password.');
+              logger.warn('Password-encrypted key found but no password set. User needs to enter password.');
             } else {
-              console.warn('Failed to decrypt API key. Device characteristics may have changed or password is incorrect.');
+              logger.warn('Failed to decrypt API key. Device characteristics may have changed or password is incorrect.');
             }
             return null; // Force re-entry
           }
@@ -200,7 +201,7 @@ export class AIScriptGenerator {
       
       return config;
     } catch (error) {
-      console.error('Error loading AI config:', error);
+      logger.error('Error loading AI config:', error);
       return null;
     }
   }

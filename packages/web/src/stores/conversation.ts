@@ -12,6 +12,7 @@ import {
   MCPClient,
   MCPConfig,
   Note,
+  Script,
   LocalNoteStorage,
   NoteStorage,
   CreateNoteParams,
@@ -37,7 +38,7 @@ interface ConversationState extends ConversationContext {
   // Notes state
   noteStorage: NoteStorage | null;
   notes: Note[];
-  scripts: any[]; // From scriptStorage
+  scripts: Script[];
 
   // Auth state
   currentUser: AuthUser | null;

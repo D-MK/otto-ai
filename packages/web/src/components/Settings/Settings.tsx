@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { EncryptionService } from '../../services/encryption';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
 import { ThemeService, ThemePreset, ThemeColors } from '../../services/themeService';
+import { logger } from '../../utils/logger';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import './Settings.css';
@@ -342,7 +343,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
         }
       }
     } catch (error) {
-      console.error('Failed to re-encrypt API keys:', error);
+      logger.error('Failed to re-encrypt API keys:', error);
     }
   };
 

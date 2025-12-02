@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useConversationStore } from '../../stores/conversation';
 import { AIScriptGenerator, AIConfig, AIProvider } from '../../services/aiScriptGenerator';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
+import { logger } from '../../utils/logger';
 import { MagicWandIcon } from '../Icons/Icons';
 import './AIScriptGenerator.css';
 
@@ -100,7 +101,7 @@ const AIScriptGeneratorComponent: React.FC<AIScriptGeneratorProps> = ({ onClose 
           }
         } catch (err) {
           // Silently fail - will use default prompt
-          console.warn('Failed to load custom prompt from Supabase, using default:', err);
+          logger.warn('Failed to load custom prompt from Supabase, using default:', err);
         }
       }
 

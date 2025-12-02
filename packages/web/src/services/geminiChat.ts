@@ -6,6 +6,7 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { EncryptionService } from './encryption';
+import { logger } from '../utils/logger';
 
 interface ChatMessage {
   role: 'user' | 'model';
@@ -190,9 +191,9 @@ export class GeminiChatService {
             if (decrypted === null) {
               // Check if it's password-encrypted and password is not set
               if (EncryptionService.isPasswordEncrypted(key) && !EncryptionService.hasMasterPassword()) {
-                console.warn('Password-encrypted key found but no password set. User needs to enter password.');
+                logger.warn('Password-encrypted key found but no password set. User needs to enter password.');
               } else {
-                console.warn('Failed to decrypt API key from AI config');
+                logger.warn('Failed to decrypt API key from AI config');
               }
               return null;
             }
@@ -222,9 +223,9 @@ export class GeminiChatService {
       const decrypted = await EncryptionService.decrypt(storedKey);
       if (decrypted === null) {
         if (EncryptionService.isPasswordEncrypted(storedKey) && !EncryptionService.hasMasterPassword()) {
-          console.warn('Password-encrypted key found but no password set.');
+          logger.warn('Password-encrypted key found but no password set.');
         } else {
-          console.warn('Failed to decrypt API key from dedicated storage');
+          logger.warn('Failed to decrypt API key from dedicated storage');
         }
         return null;
       }

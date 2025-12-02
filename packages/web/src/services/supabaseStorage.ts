@@ -3,6 +3,7 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 export interface Script {
   id: string;
@@ -60,8 +61,8 @@ export class SupabaseStorageService {
       .limit(1);
 
     if (error) {
-      console.warn('Scripts table may not exist. Please create it with the following schema:');
-      console.warn(`
+      logger.warn('Scripts table may not exist. Please create it with the following schema:');
+      logger.warn(`
         CREATE TABLE scripts (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,

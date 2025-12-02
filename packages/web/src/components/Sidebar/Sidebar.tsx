@@ -8,6 +8,7 @@ import { Script, Note, NoteFilter, NoteSortOption } from '@otto-ai/core';
 import { ChatIcon, ScriptsIcon, NotesIcon, MagicWandIcon, SettingsIcon, ApiKeysIcon, McpServerIcon, SyncIcon, AiPromptIcon, AppearanceIcon } from '../Icons/Icons';
 import { TabType } from '../TabContainer/TabContainer';
 import { SettingsSection } from '../Settings/Settings';
+import { logger } from '../../utils/logger';
 import NoteList from '../Notes/NoteList';
 import './Sidebar.css';
 
@@ -211,7 +212,7 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
         scriptSortPreference: newSort,
       } as any);
     } catch (error) {
-      console.error('Failed to save sort preference:', error);
+      logger.error('Failed to save sort preference:', error);
     }
   };
 
@@ -223,7 +224,7 @@ const Sidebar = forwardRef<SidebarHandle, SidebarProps>(({
         noteSortPreference: newSort,
       } as any);
     } catch (error) {
-      console.error('Failed to save sort preference:', error);
+      logger.error('Failed to save sort preference:', error);
     }
   };
 

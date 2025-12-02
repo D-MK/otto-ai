@@ -5,6 +5,7 @@
 import { BrowserScriptStorage, Script } from '@otto-ai/core';
 import { SupabaseStorageService } from './supabaseStorage';
 import type { SettingsData } from '../components/Settings/Settings';
+import { logger } from '../utils/logger';
 
 export class SyncedScriptStorage extends BrowserScriptStorage {
   private supabaseStorage: SupabaseStorageService | null = null;
@@ -29,10 +30,10 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
         );
         // Ensure table exists
         this.supabaseStorage.ensureTableExists().catch((error) => {
-          console.error('Failed to ensure Supabase table exists:', error);
+          logger.error('Failed to ensure Supabase table exists:', error);
         });
       } catch (error) {
-        console.error('Failed to initialize Supabase storage:', error);
+        logger.error('Failed to initialize Supabase storage:', error);
         this.supabaseStorage = null;
       }
     }
@@ -94,7 +95,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
         await this.supabaseStorage.createScript(supabaseScript);
       }
     } catch (error) {
-      console.error('Failed to sync script to Supabase:', error);
+      logger.error('Failed to sync script to Supabase:', error);
       // Don't throw - we don't want to break local operations
     }
   }
@@ -110,7 +111,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
     try {
       await this.supabaseStorage.deleteScript(id);
     } catch (error) {
-      console.error('Failed to delete script from Supabase:', error);
+      logger.error('Failed to delete script from Supabase:', error);
       // Don't throw - we don't want to break local operations
     }
   }
@@ -123,7 +124,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
 
     // Sync to Supabase in background (don't await)
     this.syncToSupabase(newScript).catch((error) => {
-      console.error('Background sync to Supabase failed:', error);
+      logger.error('Background sync to Supabase failed:', error);
     });
 
     return newScript;
@@ -141,7 +142,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
     if (updatedScript) {
       // Sync to Supabase in background (don't await)
       this.syncToSupabase(updatedScript).catch((error) => {
-        console.error('Background sync to Supabase failed:', error);
+        logger.error('Background sync to Supabase failed:', error);
       });
     }
 
@@ -157,7 +158,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
     if (deleted) {
       // Delete from Supabase in background (don't await)
       this.deleteFromSupabase(id).catch((error) => {
-        console.error('Background delete from Supabase failed:', error);
+        logger.error('Background delete from Supabase failed:', error);
       });
     }
 
@@ -172,7 +173,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
 
     // Sync to Supabase in background (don't await)
     this.syncToSupabase(upsertedScript).catch((error) => {
-      console.error('Background sync to Supabase failed:', error);
+      logger.error('Background sync to Supabase failed:', error);
     });
 
     return upsertedScript;
@@ -195,7 +196,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
         await this.syncToSupabase(script);
         success++;
       } catch (error) {
-        console.error(`Failed to sync script ${script.name}:`, error);
+        logger.error(`Failed to sync script ${script.name}:`, error);
         failed++;
       }
     }
@@ -209,7 +210,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
    */
   async loadFromSupabase(): Promise<{ loaded: number; failed: number }> {
     if (!this.isSupabaseSyncEnabled() || !this.supabaseStorage) {
-      console.warn('Supabase sync not enabled, cannot load scripts');
+      logger.warn('Supabase sync not enabled, cannot load scripts');
       return { loaded: 0, failed: 0 };
     }
 
@@ -219,7 +220,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
     try {
       // Get all scripts from Supabase
       const supabaseScripts = await this.supabaseStorage.getAllScripts();
-      console.log(`Found ${supabaseScripts.length} scripts in Supabase`);
+      logger.log(`Found ${supabaseScripts.length} scripts in Supabase`);
 
       // Load scripts from Supabase
       for (const supabaseScript of supabaseScripts) {
@@ -249,14 +250,14 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
           super.upsert(script);
           loaded++;
         } catch (error) {
-          console.error(`Failed to load script ${supabaseScript.name}:`, error);
+          logger.error(`Failed to load script ${supabaseScript.name}:`, error);
           failed++;
         }
       }
 
-      console.log(`Loaded ${loaded} scripts from Supabase, ${failed} failed`);
+      logger.log(`Loaded ${loaded} scripts from Supabase, ${failed} failed`);
     } catch (error) {
-      console.error('Failed to load scripts from Supabase:', error);
+      logger.error('Failed to load scripts from Supabase:', error);
       return { loaded: 0, failed: 1 };
     }
 
@@ -282,7 +283,7 @@ export class SyncedScriptStorage extends BrowserScriptStorage {
       const supabaseScripts = await this.supabaseStorage.getAllScripts();
       return supabaseScripts.length > 0;
     } catch (error) {
-      console.error('Failed to check Supabase scripts:', error);
+      logger.error('Failed to check Supabase scripts:', error);
       return false;
     }
   }

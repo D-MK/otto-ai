@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Script, ParameterDef, ExecutionType } from '@otto-ai/core';
 import { useConversationStore } from '../../stores/conversation';
+import { logger } from '../../utils/logger';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-javascript';
@@ -132,7 +133,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
       // Clear feedback after 3 seconds
       setTimeout(() => setFeedback(null), 3000);
     } catch (error) {
-      console.error('Error saving script:', error);
+      logger.error('Error saving script:', error);
       setFeedback({ type: 'error', message: 'Failed to save script. Please try again.' });
       setTimeout(() => setFeedback(null), 3000);
     }
@@ -160,7 +161,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({ onScriptSaved, selectedScri
         setFeedback({ type: 'success', message: 'Script deleted successfully!' });
         setTimeout(() => setFeedback(null), 3000);
       } catch (error) {
-        console.error('Error deleting script:', error);
+        logger.error('Error deleting script:', error);
         setFeedback({ type: 'error', message: 'Failed to delete script. Please try again.' });
         setTimeout(() => setFeedback(null), 3000);
       }

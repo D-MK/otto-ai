@@ -2,6 +2,8 @@
  * Theme Service - manages color themes and CSS variable updates
  */
 
+import { logger } from '../utils/logger';
+
 export type ThemePreset = 'light' | 'dark' | 'blue' | 'green' | 'purple';
 
 export interface ThemeColors {
@@ -246,7 +248,7 @@ export class ThemeService {
         this.applyCustomTheme(customColors);
         return;
       } catch (e) {
-        console.error('Failed to load custom theme:', e);
+        logger.error('Failed to load custom theme:', e);
       }
     }
     

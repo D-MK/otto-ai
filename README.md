@@ -149,10 +149,12 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 - ✅ Production-safe logging (console disabled in production)
 - ✅ Input sanitization utilities added (DOMPurify)
 - ✅ Supabase API key encryption on save (matching Gemini API key behavior)
+- ✅ Replaced all console.log/warn/error with production-safe logger utility
+- ✅ Fixed Auth component to properly configure Supabase before authentication operations
+- ✅ Added URL utility for correct redirect handling on GitHub Pages deployments
 
 **Remaining Work:**
 - Integrate DOMPurify into components rendering user input
-- Replace remaining console statements in service files
 - Consider Web Workers for stronger script isolation
 
 ## Deployment
@@ -164,7 +166,8 @@ The app is configured for deployment on [Fly.io](https://fly.io).
 **Recent Build Fixes:**
 - ✅ Fixed TypeScript compilation errors in NoteEditor component (fixed createNote return type mismatch)
 - ✅ Excluded test files from production TypeScript builds
-- ✅ Configured @testing-library/jest-dom matchers for Vitest test environment 
+- ✅ Configured @testing-library/jest-dom matchers for Vitest test environment
+- ✅ Fixed TypeScript `any` types in conversation store (now properly typed as `Script[]`) 
 
 **Prerequisites:**
 - [Fly.io CLI](https://fly.io/docs/getting-started/installing-flyctl/) installed

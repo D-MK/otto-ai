@@ -43,6 +43,8 @@ const App: React.FC = () => {
     handleAuthSuccess,
     isAuthenticated,
     authChecked,
+    currentUser,
+    logout,
   } = useConversationStore();
   const [activeTab, setActiveTab] = useState<TabType>('chat');
   const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSection>('api-keys');
@@ -244,6 +246,20 @@ const App: React.FC = () => {
     setShowAuth(false);
   };
 
+  const handleAuthRequest = () => {
+    setShowAuth(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowAuth(false);
+    } catch (error) {
+      logger.error('Logout error:', error);
+      alert(`Logout failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   // Determine if we should show auth modal
   const shouldShowAuth = authChecked &&
                         !isAuthenticated &&
@@ -321,6 +337,10 @@ const App: React.FC = () => {
                 onExportCSV={handleExportCSV}
                 activeSection={activeSettingsSection}
                 onSectionChange={setActiveSettingsSection}
+                isAuthenticated={isAuthenticated}
+                currentUserEmail={currentUser?.email || ''}
+                onAuthRequest={handleAuthRequest}
+                onLogout={handleLogout}
               />
             </Suspense>
           )}

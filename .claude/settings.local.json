@@ -17,7 +17,8 @@
       "Bash(npm install:*)",
       "Bash(find:*)",
       "Bash(timeout 20 npm run dev:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(npx @context7/mcp-server:*)"
     ],
     "deny": [],
     "ask": []

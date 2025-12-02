@@ -36,6 +36,10 @@ interface SettingsProps {
   onExportCSV?: () => void;
   activeSection?: SettingsSection;
   onSectionChange?: (section: SettingsSection) => void;
+  isAuthenticated?: boolean;
+  currentUserEmail?: string;
+  onAuthRequest?: () => void;
+  onLogout?: () => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -43,7 +47,11 @@ export const Settings: React.FC<SettingsProps> = ({
   onSave,
   onSync,
   onExportCSV,
-  activeSection: externalActiveSection
+  activeSection: externalActiveSection,
+  isAuthenticated = false,
+  currentUserEmail = '',
+  onAuthRequest,
+  onLogout,
 }) => {
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [supabaseApiKey, setSupabaseApiKey] = useState(settings.supabaseApiKey);
@@ -615,6 +623,49 @@ Return ONLY the JSON object, no additional text or explanation.`;
                   This allows you to access your scripts across different devices and browsers.
                 </p>
               </div>
+
+              {/* Authentication Status */}
+              {supabaseUrl && supabaseApiKey && (
+                <div className="auth-status-section" style={{ marginBottom: '20px', padding: '16px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <h4 style={{ marginTop: 0, marginBottom: '12px', fontSize: '16px' }}>Authentication Status</h4>
+                  {isAuthenticated ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ color: 'var(--success-color)', fontSize: '20px' }}>✓</span>
+                        <span style={{ fontSize: '14px' }}>
+                          Logged in as <strong>{currentUserEmail}</strong>
+                        </span>
+                      </div>
+                      {onLogout && (
+                        <button
+                          type="button"
+                          onClick={onLogout}
+                          className="settings-btn-secondary"
+                          style={{ alignSelf: 'flex-start' }}
+                        >
+                          Logout
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>
+                        Login to Supabase to enable cloud sync for your scripts and settings.
+                      </p>
+                      {onAuthRequest && (
+                        <button
+                          type="button"
+                          onClick={onAuthRequest}
+                          className="settings-btn-primary"
+                          style={{ alignSelf: 'flex-start' }}
+                        >
+                          Login with Supabase
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {(!supabaseUrl || !supabaseApiKey) && (
                 <div className="settings-warning">

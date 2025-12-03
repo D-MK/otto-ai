@@ -41,6 +41,11 @@ CREATE TABLE user_settings (
   supabase_url TEXT,
   storage_mode TEXT DEFAULT 'localStorage',
   mcp_servers JSONB DEFAULT '[]'::jsonb,
+  script_sort_preference TEXT DEFAULT 'name-asc',
+  setup_wizard_completed BOOLEAN DEFAULT FALSE,
+  setup_wizard_last_step INTEGER DEFAULT 0,
+  setup_wizard_dismissed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -96,6 +101,9 @@ CREATE POLICY "Users can update own settings" ON user_settings
       storage_mode: settings.storageMode,
       mcp_servers: settings.mcpServers,
       script_sort_preference: settings.scriptSortPreference || 'name-asc',
+      setup_wizard_completed: settings.setupWizardCompleted || false,
+      setup_wizard_last_step: settings.setupWizardLastStep || 0,
+      setup_wizard_dismissed_at: settings.setupWizardDismissedAt || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -135,6 +143,9 @@ CREATE POLICY "Users can update own settings" ON user_settings
       storageMode: data.storage_mode || 'localStorage',
       mcpServers: data.mcp_servers || [],
       scriptSortPreference: data.script_sort_preference || 'name-asc',
+      setupWizardCompleted: data.setup_wizard_completed ?? false,
+      setupWizardLastStep: data.setup_wizard_last_step ?? 0,
+      setupWizardDismissedAt: data.setup_wizard_dismissed_at || null,
     };
   }
 }

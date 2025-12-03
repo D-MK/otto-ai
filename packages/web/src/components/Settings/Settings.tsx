@@ -27,6 +27,9 @@ export interface SettingsData {
   storageMode: StorageMode;
   scriptSortPreference?: ScriptSortPreference;
   theme?: ThemePreset;
+  setupWizardCompleted?: boolean;
+  setupWizardLastStep?: number;
+  setupWizardDismissedAt?: string | null;
 }
 
 export type SettingsSection = 'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' | 'appearance';
@@ -35,7 +38,7 @@ export type SettingsSection = 'api-keys' | 'mcp-servers' | 'sync' | 'ai-prompt' 
  * Extract project name from Supabase URL
  * Handles both full URLs and just project names
  */
-function extractSupabaseProjectName(url: string): string {
+export function extractSupabaseProjectName(url: string): string {
   if (!url) return '';
   
   // If it's already just a project name (no https:// or .supabase.co), return as-is
@@ -57,7 +60,7 @@ function extractSupabaseProjectName(url: string): string {
 /**
  * Build full Supabase URL from project name
  */
-function buildSupabaseUrl(projectName: string): string {
+export function buildSupabaseUrl(projectName: string): string {
   if (!projectName) return '';
   const cleanName = projectName.trim().replace(/^https?:\/\//, '').replace(/\.supabase\.co.*$/, '');
   return `https://${cleanName}.supabase.co`;
@@ -74,6 +77,7 @@ interface SettingsProps {
   currentUserEmail?: string;
   onAuthRequest?: () => void;
   onLogout?: () => void;
+  onOpenSetupWizard?: () => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -86,6 +90,7 @@ export const Settings: React.FC<SettingsProps> = ({
   currentUserEmail = '',
   onAuthRequest,
   onLogout,
+  onOpenSetupWizard,
 }) => {
   const [geminiApiKey, setGeminiApiKey] = useState(settings.geminiApiKey);
   const [supabaseApiKey, setSupabaseApiKey] = useState(settings.supabaseApiKey);
@@ -155,6 +160,11 @@ export const Settings: React.FC<SettingsProps> = ({
   const [savedThemes, setSavedThemes] = useState<SavedCustomTheme[]>([]);
   const [customThemeName, setCustomThemeName] = useState<string>('');
   const [showSaveThemeDialog, setShowSaveThemeDialog] = useState(false);
+  const setupCompleted = !!settings.setupWizardCompleted;
+  const setupSummaryText = setupCompleted
+    ? 'Secure setup complete. You can revisit the wizard anytime.'
+    : 'Complete the secure wizard once so you never have to re-enter keys.';
+  const setupButtonLabel = setupCompleted ? 'Review Setup Wizard' : 'Start Setup Wizard';
 
   useEffect(() => {
     setGeminiApiKey(settings.geminiApiKey);
@@ -592,6 +602,24 @@ Return ONLY the JSON object, no additional text or explanation.`;
         <div className="settings-main">
           {activeSection === 'api-keys' && (
             <div className="settings-section">
+              <div className="setup-banner">
+                <div>
+                  <p className="setup-banner-eyebrow">{setupCompleted ? '✅ Secure setup complete' : 'Secure setup pending'}</p>
+                  <h3>{setupCompleted ? 'Keys encrypted & ready' : 'Finish secure setup once'}</h3>
+                  <p>{setupSummaryText}</p>
+                </div>
+                {onOpenSetupWizard && (
+                  <button
+                    type="button"
+                    className="settings-btn-primary"
+                    onClick={onOpenSetupWizard}
+                    style={{ alignSelf: 'center' }}
+                  >
+                    {setupButtonLabel}
+                  </button>
+                )}
+              </div>
+
               <div className="settings-field">
                 <label>
                   Master Password (Optional)

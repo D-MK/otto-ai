@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS user_settings (
   storage_mode TEXT DEFAULT 'localStorage',
   mcp_servers JSONB DEFAULT '[]'::jsonb,
   script_sort_preference TEXT DEFAULT 'name-asc',
+  setup_wizard_completed BOOLEAN DEFAULT FALSE,
+  setup_wizard_last_step INTEGER DEFAULT 0,
+  setup_wizard_dismissed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

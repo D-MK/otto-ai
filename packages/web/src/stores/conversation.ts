@@ -79,6 +79,17 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
     if (stored) {
       const settings: SettingsData = JSON.parse(stored);
       
+      // Ensure setup wizard fields exist
+      if (typeof settings.setupWizardCompleted !== 'boolean') {
+        settings.setupWizardCompleted = false;
+      }
+      if (typeof settings.setupWizardLastStep !== 'number') {
+        settings.setupWizardLastStep = 0;
+      }
+      if (settings.setupWizardDismissedAt === undefined) {
+        settings.setupWizardDismissedAt = null;
+      }
+      
       // Decrypt geminiApiKey if encrypted, or migrate if plaintext
       if (settings.geminiApiKey) {
         if (EncryptionService.isEncrypted(settings.geminiApiKey)) {
@@ -134,6 +145,9 @@ const loadSettingsFromStorage = async (): Promise<SettingsData> => {
     storageMode: 'localStorage',
     mcpServers: [],
     scriptSortPreference: 'name-asc',
+    setupWizardCompleted: false,
+    setupWizardLastStep: 0,
+    setupWizardDismissedAt: null,
   };
 };
 
@@ -161,6 +175,9 @@ const initialSettings: SettingsData = {
   storageMode: 'localStorage',
   mcpServers: [],
   scriptSortPreference: 'name-asc',
+  setupWizardCompleted: false,
+  setupWizardLastStep: 0,
+  setupWizardDismissedAt: null,
 };
 
 export const useConversationStore = create<ConversationState>((set, get) => ({

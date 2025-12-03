@@ -1,0 +1,283 @@
+.setup-wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.setup-wizard-modal {
+  background: #fff;
+  color: #0f172a;
+  width: min(700px, 100%);
+  max-height: 95vh;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+.setup-wizard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.setup-wizard-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0 0 0.25rem;
+}
+
+.setup-wizard-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.setup-wizard-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #94a3b8;
+  line-height: 1;
+}
+
+.setup-wizard-steps {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.wizard-step {
+  flex: 1;
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: #94a3b8;
+}
+
+.wizard-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.wizard-step.active {
+  color: #2563eb;
+}
+
+.wizard-step.completed {
+  color: #22c55e;
+}
+
+.wizard-step-label {
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.setup-wizard-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.setup-wizard-body section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.setup-wizard-body h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.setup-wizard-body p {
+  margin: 0;
+  color: #475569;
+}
+
+.wizard-list {
+  margin: 0;
+  padding-left: 1rem;
+  color: #475569;
+}
+
+.setup-wizard-body label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.setup-wizard-body input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5f5;
+  font-size: 1rem;
+}
+
+.setup-wizard-body input.has-error {
+  border-color: #f97316;
+}
+
+.wizard-field-hint {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.wizard-error {
+  color: #f97316;
+  font-size: 0.85rem;
+}
+
+.wizard-supabase-input {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.wizard-supabase-input input {
+  flex: 1;
+}
+
+.wizard-storage-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.wizard-storage-options button {
+  border: 1px solid #cbd5f5;
+  border-radius: 12px;
+  padding: 0.8rem;
+  background: #fff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.wizard-storage-options button.selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.wizard-storage-options button strong {
+  font-size: 0.95rem;
+}
+
+.wizard-storage-options button span {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.wizard-storage-options button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wizard-summary ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #475569;
+}
+
+.wizard-status {
+  background: #f0f9ff;
+  color: #0c4a6e;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.setup-wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wizard-footer-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.wizard-footer-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.setup-wizard-footer .primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.35rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.setup-wizard-footer .primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .setup-wizard-modal {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+
+  .setup-wizard-steps {
+    gap: 0.35rem;
+  }
+
+  .wizard-step {
+    min-width: 90px;
+  }
+
+  .setup-wizard-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wizard-footer-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+

@@ -26,6 +26,7 @@ const Auth = React.lazy(() => import('./components/Auth/Auth'));
 const Notes = React.lazy(() => import('./components/Notes/Notes'));
 import { TabType } from './components/TabContainer/TabContainer';
 import { SettingsSection } from './components/Settings/Settings';
+import SetupWizard from './components/SetupWizard/SetupWizard';
 
 // Load seed scripts
 import seedScripts from '../../../seed-data/scripts.json';
@@ -57,6 +58,7 @@ const App: React.FC = () => {
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isSetupWizardVisible, setIsSetupWizardVisible] = useState(false);
   const chatRef = useRef<ChatHandle>(null);
   const sidebarRef = useRef<SidebarHandle>(null);
 
@@ -128,6 +130,18 @@ const App: React.FC = () => {
       setShowAuth(true);
     }
   }, [authChecked, isAuthenticated, settings.supabaseUrl, settings.supabaseApiKey]);
+
+  // Prompt first-time users to complete secure setup
+  useEffect(() => {
+    const needsWizard =
+      !settings.setupWizardCompleted &&
+      !settings.setupWizardDismissedAt &&
+      (!settings.geminiApiKey || !settings.supabaseUrl);
+
+    if (needsWizard) {
+      setIsSetupWizardVisible(true);
+    }
+  }, [settings]);
 
   const handleKeywordClick = (keyword: string) => {
     if (chatRef.current) {
@@ -341,6 +355,7 @@ const App: React.FC = () => {
                 currentUserEmail={currentUser?.email || ''}
                 onAuthRequest={handleAuthRequest}
                 onLogout={handleLogout}
+                onOpenSetupWizard={() => setIsSetupWizardVisible(true)}
               />
             </Suspense>
           )}
@@ -397,6 +412,13 @@ const App: React.FC = () => {
             onSkip={handleAuthSkip}
           />
         </Suspense>
+      )}
+      {isSetupWizardVisible && (
+        <SetupWizard
+          isOpen={isSetupWizardVisible}
+          onClose={() => setIsSetupWizardVisible(false)}
+          onCompleted={() => setIsSetupWizardVisible(false)}
+        />
       )}
       {DEBUG_MODE && (
         <Suspense fallback={null}>

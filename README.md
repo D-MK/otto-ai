@@ -4,23 +4,29 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 
 ## Features
 
-- **Natural Language Interface**: Interact with scripts using conversational language
-- **Script Management**: Create, edit, and delete custom scripts with a user-friendly editor
+### Core Functionality
+- **Natural Language Interface**: Interact with scripts using conversational language with smart intent classification
+- **Script Execution**: Run scripts locally (sandboxed JavaScript), via external MCP APIs, or through Gemini AI
 - **AI Script Generator**: Generate scripts automatically using AI (Gemini or Claude) from natural language descriptions
+- **Script Management**: Create, edit, delete, import, and export custom scripts with a user-friendly editor
+- **Secure Setup Wizard**: First-time onboarding that encrypts API keys once with guided validation and auto-save
+
+### AI & Automation
 - **Conversational AI**: Built-in Gemini chat for Q&A with conversation context (up to 3 exchanges)
-- **Script Browser**: Sidebar with collapsible script list, clickable keywords, and script tags
-- **Script Import/Export**: Import and export scripts as JSON for backup and sharing
-- **Multiple Execution Types**: Run scripts locally (sandboxed JavaScript), via external MCP APIs, or through Gemini AI
 - **Intent Classification**: Smart routing using embedding similarity and keyword matching
 - **Parameter Collection**: Conversational parameter gathering across multiple turns
+
+### User Experience
+- **Tabbed Interface**: Clean interface for Chat, Scripts, and Notes
+- **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
+- **Script Browser**: Sidebar with collapsible script list, clickable keywords, and script tags
+- **Custom Themes**: Choose from 5 preset themes or create your own custom theme
+- **Code Highlighting**: Automatic syntax highlighting for scripts, AI prompts, and MCP configurations
+
+### Additional Features
+- **Mobile-Optimized UI**: Responsive design with mobile-specific optimizations
 - **Text-to-Speech**: Optional TTS for bot responses
 - **Debug Mode**: Detailed intent classification and execution information
-- **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
-- **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
-- **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme
-- **Automatic Code Highlighting**: Code in scripts, AI prompts, and MCP server configurations is automatically syntax-highlighted for better readability
-- **Mobile-Optimized UI**: Centered logo with "Otto <logo> AI" format on mobile devices
-- **Mobile Sidebar Fullscreen Toggle**: Toggle sidebar between overlay (85% width) and fullscreen (100% width) modes on mobile devices for better content visibility
 
 ## Quick Start
 
@@ -141,148 +147,56 @@ For detailed MCP integration setup, see the [MCP Integration guide](docs/integra
 
 ## Security
 
-**⚠️ IMPORTANT:** Before deploying to production, please review the [Security Review](SECURITY_REVIEW.md) and [Security Fixes](SECURITY_FIXES.md) documents.
+**⚠️ IMPORTANT:** Before deploying to production, please review the [Security Review](docs/security/security-review-2025.md).
 
-**Recent Security Improvements:**
-- ✅ Enhanced script execution sandbox with improved validation
-- ✅ Removed exposed environment variables from build
+**Security Features:**
+- ✅ API key encryption using Web Crypto API (AES-GCM with PBKDF2)
+- ✅ Input sanitization with DOMPurify to prevent XSS attacks
 - ✅ Production-safe logging (console disabled in production)
-- ✅ Input sanitization utilities added (DOMPurify)
-- ✅ Supabase API key encryption on save (matching Gemini API key behavior)
-- ✅ Replaced all console.log/warn/error with production-safe logger utility
-- ✅ Fixed Auth component to properly configure Supabase before authentication operations
-- ✅ Added URL utility for correct redirect handling on GitHub Pages deployments with automatic base path detection
-- ✅ Added Supabase URL validation to prevent common typos (e.g., supabase.c vs supabase.co)
+- ✅ Enhanced script execution sandbox with code validation
+- ✅ Environment variables not exposed in client code
+- ✅ Supabase URL validation to prevent configuration errors
 
-**Remaining Work:**
-- Integrate DOMPurify into components rendering user input
-- Consider Web Workers for stronger script isolation
+**Security Status:** See the [Security Review](docs/security/security-review-2025.md) for detailed assessment and recommendations.
 
 ## Deployment
 
-### Deploying to Fly.io
+Otto AI can be deployed to various platforms. Each deployment method has detailed documentation:
 
-The app is configured for deployment on [Fly.io](https://fly.io).
+### Fly.io
 
-**Recent Build Fixes:**
-- ✅ Fixed TypeScript compilation errors in NoteEditor component (fixed createNote return type mismatch)
-- ✅ Excluded test files from production TypeScript builds
-- ✅ Configured @testing-library/jest-dom matchers for Vitest test environment
-- ✅ Fixed TypeScript `any` types in conversation store (now properly typed as `Script[]`) 
+Deploy to [Fly.io](https://fly.io) for full-stack hosting with automatic scaling.
 
-**Prerequisites:**
-- [Fly.io CLI](https://fly.io/docs/getting-started/installing-flyctl/) installed
-- Fly.io account created
+**Quick Steps:**
+1. Install Fly.io CLI and login
+2. Create app: `fly apps create otto-ai`
+3. Deploy: `fly deploy`
+4. Set environment variables: `fly secrets set VITE_*`
 
-**Deployment Steps:**
+📖 [Full Fly.io Deployment Guide](docs/deployment/fly-io.md)
 
-1. **Login to Fly.io:**
-   ```bash
-   fly auth login
-   ```
+### GitHub Pages
 
-2. **Create a new app (if not already created):**
-   ```bash
-   fly apps create otto-ai
-   ```
-   Note: Update the `app` name in `fly.toml` if you use a different name.
+Deploy to GitHub Pages using GitHub Actions for automatic deployment.
 
-3. **Deploy:**
-   ```bash
-   fly deploy
-   ```
+**Quick Steps:**
+1. Enable GitHub Pages in repository settings (Source: GitHub Actions)
+2. Push to `main` branch (deploys automatically)
+3. Configure Supabase Site URL to match GitHub Pages URL
+4. Access at `https://<username>.github.io/<repo-name>/`
 
-4. **Open your app:**
-   ```bash
-   fly open
-   ```
+📖 [Full GitHub Pages Deployment Guide](docs/deployment/github-pages.md)
 
-**Environment Variables:**
-If you need to set environment variables for the build process, you can set them in Fly.io:
-```bash
-fly secrets set VITE_MCP_BASE_URL=https://api.example.com/mcp
-fly secrets set VITE_MCP_AUTH_TYPE=bearer
-fly secrets set VITE_MCP_AUTH_TOKEN=your-token-here
-```
+### Other Platforms
 
-Note: Vite environment variables are embedded at build time, so you'll need to rebuild and redeploy if you change them.
+Deploy to Vercel, Netlify, Cloudflare Pages, AWS S3, Azure Static Web Apps, or any static hosting service.
 
-### Deploying to GitHub Pages
+**Quick Steps:**
+1. Build: `npm run build`
+2. Deploy `packages/web/dist/` folder
+3. Configure environment variables at build time
 
-The app is configured for automatic deployment to GitHub Pages using GitHub Actions.
-
-**Prerequisites:**
-- GitHub repository with the code
-- GitHub Pages enabled in repository settings
-
-**Setup Steps:**
-
-1. **Enable GitHub Pages:**
-   - Go to your repository on GitHub
-   - Navigate to **Settings** → **Pages**
-   - Under **Source**, select **GitHub Actions**
-   - Save the settings
-
-2. **Deploy:**
-   - The deployment workflow will automatically run when you push to the `main` branch
-   - You can also manually trigger it from the **Actions** tab → **Deploy to GitHub Pages** → **Run workflow**
-
-3. **Access your app:**
-   - Your app will be available at `https://<username>.github.io/<repository-name>/`
-   - For example: `https://username.github.io/otto-ai/`
-
-**Custom Base Path:**
-- The workflow automatically sets the base path based on your repository name
-- If you're using a custom domain or deploying from `username.github.io`, you can override the base path by:
-  - Setting the `VITE_BASE_PATH` environment variable in your repository secrets
-  - Or modifying the workflow file to set a different base path
-
-**Manual Build (Alternative):**
-If you prefer to build and deploy manually:
-```bash
-# Build the app
-npm run build
-
-# The built files will be in packages/web/dist/
-# You can deploy this folder to GitHub Pages or any static hosting service
-```
-
-**Configuring Supabase for GitHub Pages:**
-
-When deploying to GitHub Pages with Supabase authentication, you need to configure the Site URL correctly:
-
-1. **Set Site URL in Supabase:**
-   - Go to your Supabase project dashboard
-   - Navigate to **Authentication → URL Configuration**
-   - Set **Site URL** to your GitHub Pages URL (including the base path):
-     - Example: `https://d-mk.github.io/otto-ai/`
-     - **Important:** Include the trailing slash and the repository name path
-   - Add the same URL to **Redirect URLs** (allowed redirect URLs list)
-
-2. **Configure GitHub OAuth (if using):**
-   - In your GitHub OAuth App settings, set the **Authorization callback URL** to:
-     - `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
-     - Replace `YOUR_PROJECT` with your Supabase project reference ID
-   - Copy the Client ID and Client Secret to Supabase **Authentication → Providers → GitHub**
-
-3. **Enable Authentication Providers:**
-   - In Supabase, go to **Authentication → Providers**
-   - Enable **Email** provider (required for email/password login)
-   - Optionally enable **GitHub** provider if you want OAuth login
-
-**Common Issues:**
-- **"Invalid redirect URL"**: Make sure the Site URL in Supabase matches your GitHub Pages URL exactly, including the base path (e.g., `/otto-ai/`)
-- **"Authorization path mismatch"**: Ensure the Site URL includes the full path, not just the domain
-- **OAuth not working**: Verify the GitHub OAuth callback URL is set to your Supabase callback URL, not your app URL
-- **"Unable to exchange external code"**: This error means the Client Secret in Supabase is incorrect - regenerate it in GitHub and update Supabase
-- **OAuth 404 on redirect**: Make sure the GitHub OAuth Client ID (not a placeholder) is entered in Supabase → Authentication → Providers → GitHub
-
-### Other Deployment Options
-
-The app can also be deployed to other static hosting services:
-- **Vercel**: Connect your repository and deploy
-- **Netlify**: Connect your repository and deploy
-- **Any static host**: Build the app and deploy the `packages/web/dist/` folder
+📖 [Other Platforms Deployment Guide](docs/deployment/other-platforms.md)
 
 ## Running Tests
 
@@ -306,7 +220,7 @@ For detailed testing information, see the [Testing Guide](docs/development/testi
 
 ### Logo Design
 
-The Otto logo has been redesigned to match the geometric, angular style of the tab icons. It features a more elaborate version of the "Generate Script" icon style with angular shapes, geometric patterns, and clean lines that maintain the Otto character while aligning with the modern UI aesthetic.
+The Otto logo uses a thin-line geometric bot mark that matches the tab icons. The same SVG is used in the UI (`OttoLogo` component) and exported as the favicon (`public/favicon.svg`) and app icon (`public/app-icon.svg`) on a white background for consistent branding.
 
 ### Color Themes
 
@@ -345,6 +259,12 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - **[Architecture Overview](docs/architecture/architecture.md)** - System architecture, components, data flow, and design decisions
 - **[Testing Guide](docs/development/testing.md)** - Testing infrastructure, unit tests, integration tests, and E2E testing
 - **[MCP Integration](docs/integration/mcp-integration.md)** - Guide to integrating external APIs using the Model Context Protocol
+- **[Security Review](docs/security/security-review-2025.md)** - Comprehensive security assessment and recommendations
+
+### Deployment
+- **[Fly.io Deployment](docs/deployment/fly-io.md)** - Deploy to Fly.io platform
+- **[GitHub Pages Deployment](docs/deployment/github-pages.md)** - Deploy using GitHub Actions
+- **[Other Platforms](docs/deployment/other-platforms.md)** - Deploy to Vercel, Netlify, and more
 
 ### Reviews & Analysis
 - **[Application Review](docs/reviews/app-review.md)** - Comprehensive feature analysis and technical assessment
@@ -397,7 +317,7 @@ The web app has been optimized for fast initial load times:
 - **Session-Based Password**: Master password stored only in sessionStorage (cleared when the browser closes)
 - **Automatic Migration**: Existing keys are automatically re-encrypted when you set a master password
 
-For detailed security information, see the [Architecture documentation](docs/architecture/architecture.md#security-considerations).
+For detailed security information, see the [Architecture documentation](docs/architecture/architecture.md#security-considerations) and the [API Keys Setup Simplification Plan](docs/development/api-keys-setup-simplification-plan.md) for the security-aware onboarding experience.
 
 ## Limitations (MVP Scope)
 
@@ -420,4 +340,4 @@ For development guidelines, see the [Testing Guide](docs/development/testing.md)
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

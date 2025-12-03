@@ -26,6 +26,18 @@ External integrations and API documentation:
 
 - **[MCP Integration](./integration/mcp-integration.md)** - Guide to integrating external APIs using the Model Context Protocol
 
+### [Deployment](./deployment/)
+Deployment guides for various platforms:
+
+- **[Fly.io Deployment](./deployment/fly-io.md)** - Deploy to Fly.io platform
+- **[GitHub Pages Deployment](./deployment/github-pages.md)** - Deploy using GitHub Actions
+- **[Other Platforms](./deployment/other-platforms.md)** - Deploy to Vercel, Netlify, and more
+
+### [Security](./security/)
+Security documentation and reviews:
+
+- **[Security Review 2025](./security/security-review-2025.md)** - Comprehensive security assessment and recommendations
+
 ### [Reviews](./reviews/)
 Project reviews and analysis documents:
 
@@ -49,6 +61,8 @@ When adding new documentation:
    - `development/` - For developers
    - `architecture/` - For system design
    - `integration/` - For external integrations
+   - `deployment/` - For deployment guides
+   - `security/` - For security documentation
    - `reviews/` - For analysis documents
 
 2. **Update this README** with links to new documentation
@@ -63,9 +77,11 @@ When adding new documentation:
 - **Want to understand how it works?** Read the [Architecture Overview](./architecture/architecture.md)
 - **Planning to contribute?** Check the [Testing Guide](./development/testing.md) and architecture docs
 - **Integrating external APIs?** See [MCP Integration](./integration/mcp-integration.md)
+- **Deploying the app?** See [Deployment](./deployment/) guides
+- **Security concerns?** Review the [Security Review](./security/security-review-2025.md)
 - **Assessing production readiness?** Review the [Portfolio/SAAS Readiness Review](./reviews/portfolio-saas-readiness-review.md)
 
 ---
 
-*Last Updated: 2025-12-02*
+*Last Updated: January 2025*
 

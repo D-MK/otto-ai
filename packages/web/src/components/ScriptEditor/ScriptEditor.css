@@ -382,6 +382,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: .75rem;
   margin-bottom: 0.5rem;
 }
 

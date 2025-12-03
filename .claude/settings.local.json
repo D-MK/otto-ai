@@ -18,7 +18,8 @@
       "Bash(find:*)",
       "Bash(timeout 20 npm run dev:*)",
       "Bash(npm test:*)",
-      "Bash(npx @context7/mcp-server:*)"
+      "Bash(npx @context7/mcp-server:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

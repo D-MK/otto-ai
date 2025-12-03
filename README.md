@@ -18,7 +18,7 @@ A cross-platform AI automation assistant that lets users create, manage, and inv
 - **Tabbed Interface**: Clean tabbed interface for Chat, Scripts, and Notes with improved UX
 - **Notes System**: Full-featured note-taking with AI-powered title/summary generation, search, filtering, sorting, and tag management
 - **Custom Themes**: Choose from 5 classic preset themes (Light, Dark, Blue, Green, Purple) or create your own custom theme
-- **Automatic Code Highlighting**: Code in scripts and AI prompts is automatically syntax-highlighted for better readability
+- **Automatic Code Highlighting**: Code in scripts, AI prompts, and MCP server configurations is automatically syntax-highlighted for better readability
 - **Mobile-Optimized UI**: Centered logo with "Otto <logo> AI" format on mobile devices
 - **Mobile Sidebar Fullscreen Toggle**: Toggle sidebar between overlay (85% width) and fullscreen (100% width) modes on mobile devices for better content visibility
 

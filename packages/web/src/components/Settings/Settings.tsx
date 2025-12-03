@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { EncryptionService } from '../../services/encryption';
 import { SupabaseStorageService } from '../../services/supabaseStorage';
-import { ThemeService, ThemePreset, ThemeColors } from '../../services/themeService';
+import { ThemeService, ThemePreset, ThemeColors, FontPreferences, SavedCustomTheme } from '../../services/themeService';
 import { logger } from '../../utils/logger';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-json';
 import './Settings.css';
 
 export interface MCPServerConfig {
@@ -143,6 +144,17 @@ export const Settings: React.FC<SettingsProps> = ({
   const [aiPromptSuccess, setAiPromptSuccess] = useState(false);
   const [isEditingAiPrompt, setIsEditingAiPrompt] = useState(false);
   const aiPromptRef = useRef<HTMLElement>(null);
+  const [isEditingMcpJson, setIsEditingMcpJson] = useState(true);
+  const mcpJsonRef = useRef<HTMLElement>(null);
+
+  // Font preferences
+  const [fontFamily, setFontFamily] = useState<string>('system');
+  const [fontSize, setFontSize] = useState<string>('16px');
+
+  // Saved themes management
+  const [savedThemes, setSavedThemes] = useState<SavedCustomTheme[]>([]);
+  const [customThemeName, setCustomThemeName] = useState<string>('');
+  const [showSaveThemeDialog, setShowSaveThemeDialog] = useState(false);
 
   useEffect(() => {
     setGeminiApiKey(settings.geminiApiKey);
@@ -160,9 +172,16 @@ export const Settings: React.FC<SettingsProps> = ({
       setCustomTheme(customColors);
     }
 
-    // Load AI prompt from Supabase when switching to AI prompt tab
-    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
-    if (activeSection === 'ai-prompt' && fullSupabaseUrl && supabaseApiKey && !aiPrompt) {
+    // Load font preferences
+    const currentFonts = ThemeService.getCurrentFontPreferences();
+    setFontFamily(currentFonts.fontFamily);
+    setFontSize(currentFonts.fontSize);
+
+    // Load saved themes
+    setSavedThemes(ThemeService.getSavedThemes());
+
+    // Load AI prompt when switching to AI prompt tab
+    if (activeSection === 'ai-prompt' && !aiPrompt) {
       loadAIPrompt();
     }
   }, [settings, activeSection]);
@@ -174,26 +193,15 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   }, [aiPrompt, isEditingAiPrompt]);
 
-  const loadAIPrompt = async () => {
-    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
-    if (!fullSupabaseUrl || !supabaseApiKey) {
-      setAiPromptError('Please configure Supabase project name and API key first');
-      return;
+  // Apply syntax highlighting to MCP JSON when not editing
+  useEffect(() => {
+    if (mcpJsonRef.current && !isEditingMcpJson && mcpServersJson) {
+      Prism.highlightElement(mcpJsonRef.current);
     }
+  }, [mcpServersJson, isEditingMcpJson]);
 
-    setAiPromptLoading(true);
-    setAiPromptError('');
-    setAiPromptSuccess(false);
-
-    try {
-      const supabaseStorage = new SupabaseStorageService(fullSupabaseUrl, supabaseApiKey);
-      const config = await supabaseStorage.getAIConfig('default');
-      
-      if (config) {
-        setAiPrompt(config.systemPrompt);
-      } else {
-        // Load default prompt from AIScriptGenerator
-        const defaultPrompt = `You are an expert at creating automation scripts. Generate a script based on the user's description.
+  const loadAIPrompt = async () => {
+    const defaultPrompt = `You are an expert at creating automation scripts. Generate a script based on the user's description.
 
 The script should be returned as a JSON object with the following structure:
 {
@@ -229,10 +237,33 @@ const result = someCalculation;
 return \`The result is \${result}\`;
 
 Return ONLY the JSON object, no additional text or explanation.`;
+
+    const fullSupabaseUrl = buildSupabaseUrl(supabaseProjectName);
+    if (!fullSupabaseUrl || !supabaseApiKey) {
+      // No Supabase connection - use default prompt
+      setAiPrompt(defaultPrompt);
+      setAiPromptError('');
+      return;
+    }
+
+    setAiPromptLoading(true);
+    setAiPromptError('');
+    setAiPromptSuccess(false);
+
+    try {
+      const supabaseStorage = new SupabaseStorageService(fullSupabaseUrl, supabaseApiKey);
+      const config = await supabaseStorage.getAIConfig('default');
+
+      if (config) {
+        setAiPrompt(config.systemPrompt);
+      } else {
+        // Load default prompt
         setAiPrompt(defaultPrompt);
       }
     } catch (error) {
-      setAiPromptError(error instanceof Error ? error.message : 'Failed to load AI prompt');
+      // On error, fall back to default prompt
+      setAiPrompt(defaultPrompt);
+      setAiPromptError(error instanceof Error ? error.message : 'Failed to load AI prompt from Supabase. Using default prompt.');
     } finally {
       setAiPromptLoading(false);
     }
@@ -458,6 +489,103 @@ Return ONLY the JSON object, no additional text or explanation.`;
     setJsonError('');
   };
 
+  // Quick color palette presets
+  const applyQuickPalette = (paletteType: 'light' | 'dark' | 'ocean' | 'forest') => {
+    let palette: Partial<ThemeColors>;
+
+    switch (paletteType) {
+      case 'light':
+        palette = {
+          bgPrimary: '#ffffff',
+          bgSecondary: '#f5f5f5',
+          bgTertiary: '#e8e8e8',
+          textPrimary: '#1a1a1a',
+          textSecondary: '#666666',
+          borderColor: '#d0d0d0',
+        };
+        break;
+      case 'dark':
+        palette = {
+          bgPrimary: '#0f172a',
+          bgSecondary: '#1e293b',
+          bgTertiary: '#334155',
+          textPrimary: '#f1f5f9',
+          textSecondary: '#cbd5e1',
+          borderColor: '#475569',
+        };
+        break;
+      case 'ocean':
+        palette = {
+          bgPrimary: '#f0f9ff',
+          bgSecondary: '#e0f2fe',
+          bgTertiary: '#bae6fd',
+          textPrimary: '#0c4a6e',
+          textSecondary: '#0369a1',
+          borderColor: '#7dd3fc',
+        };
+        break;
+      case 'forest':
+        palette = {
+          bgPrimary: '#f0fdf4',
+          bgSecondary: '#dcfce7',
+          bgTertiary: '#bbf7d0',
+          textPrimary: '#14532d',
+          textSecondary: '#15803d',
+          borderColor: '#86efac',
+        };
+        break;
+    }
+
+    const updated = { ...customTheme, ...palette };
+    setCustomTheme(updated);
+    ThemeService.applyCustomTheme(updated);
+  };
+
+  const handleSaveCustomTheme = () => {
+    if (!customThemeName.trim()) {
+      alert('Please enter a name for your theme');
+      return;
+    }
+
+    const fonts: FontPreferences = { fontFamily, fontSize };
+    ThemeService.saveNamedTheme(customThemeName, customTheme, fonts);
+    setSavedThemes(ThemeService.getSavedThemes());
+    setCustomThemeName('');
+    setShowSaveThemeDialog(false);
+  };
+
+  const handleLoadCustomTheme = (themeName: string) => {
+    const theme = ThemeService.loadSavedTheme(themeName);
+    if (theme) {
+      setCustomTheme(theme.colors);
+      ThemeService.applyCustomTheme(theme.colors);
+      if (theme.fonts) {
+        setFontFamily(theme.fonts.fontFamily);
+        setFontSize(theme.fonts.fontSize);
+        ThemeService.applyFontPreferences(theme.fonts);
+      }
+    }
+  };
+
+  const handleDeleteCustomTheme = (themeName: string) => {
+    if (confirm(`Delete theme "${themeName}"?`)) {
+      ThemeService.deleteSavedTheme(themeName);
+      setSavedThemes(ThemeService.getSavedThemes());
+    }
+  };
+
+  const handleFontChange = (newFontFamily?: string, newFontSize?: string) => {
+    const fonts: FontPreferences = {
+      fontFamily: newFontFamily || fontFamily,
+      fontSize: newFontSize || fontSize,
+    };
+
+    if (newFontFamily) setFontFamily(newFontFamily);
+    if (newFontSize) setFontSize(newFontSize);
+
+    ThemeService.saveFontPreferences(fonts);
+  };
+
   return (
     <div className="settings-container">
       <div className="settings-content">
@@ -666,14 +794,51 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     Add Example Server
                   </button>
                 </div>
-                <textarea
-                  id="mcp-servers"
-                  value={mcpServersJson}
-                  onChange={(e) => handleMcpJsonChange(e.target.value)}
-                  placeholder='[\n  {\n    "name": "My MCP Server",\n    "baseUrl": "https://api.example.com/mcp",\n    "authType": "bearer",\n    "authToken": "your-token",\n    "timeout": 5000\n  }\n]'
-                  className={`settings-textarea ${jsonError ? 'error' : ''}`}
-                  rows={15}
-                />
+                {!isEditingMcpJson && mcpServersJson ? (
+                  <div style={{ position: 'relative' }}>
+                    <pre className="code-preview" style={{ minHeight: '300px', maxHeight: '500px', overflow: 'auto' }}>
+                      <code ref={mcpJsonRef} className="language-json">
+                        {mcpServersJson}
+                      </code>
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingMcpJson(true)}
+                      className="settings-btn-secondary"
+                      style={{ marginTop: '8px' }}
+                    >
+                      Edit JSON
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <textarea
+                      id="mcp-servers"
+                      value={mcpServersJson}
+                      onChange={(e) => handleMcpJsonChange(e.target.value)}
+                      placeholder='[\n  {\n    "name": "My MCP Server",\n    "baseUrl": "https://api.example.com/mcp",\n    "authType": "bearer",\n    "authToken": "your-token",\n    "timeout": 5000\n  }\n]'
+                      className={`settings-textarea ${jsonError ? 'error' : ''}`}
+                      rows={15}
+                    />
+                    {mcpServersJson && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Validate JSON before switching to view mode
+                          const validated = validateMcpServersJson(mcpServersJson);
+                          if (validated) {
+                            setIsEditingMcpJson(false);
+                          }
+                        }}
+                        className="settings-btn-secondary"
+                        style={{ marginTop: '8px' }}
+                        disabled={!!jsonError}
+                      >
+                        Done Editing
+                      </button>
+                    )}
+                  </div>
+                )}
                 {jsonError && (
                   <div className="settings-error">{jsonError}</div>
                 )}
@@ -849,8 +1014,9 @@ Return ONLY the JSON object, no additional text or explanation.`;
                   </div>
                 )}
                 {(!supabaseProjectName || !supabaseApiKey) && (
-                  <div className="settings-warning" style={{ marginTop: '8px' }}>
-                    Please configure Supabase URL and API key in the API Keys tab to save the prompt.
+                  <div style={{ marginTop: '8px', padding: '12px', background: 'var(--bg-secondary)', borderLeft: '3px solid var(--accent-color)', borderRadius: '4px', fontSize: '13px', color: 'var(--text-primary)' }}>
+                    <strong>Using Default Prompt</strong>
+                    <p style={{ margin: '4px 0 0 0' }}>Configure Supabase in the API Keys tab to save custom prompts to the cloud.</p>
                   </div>
                 )}
                 <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
@@ -877,6 +1043,46 @@ Return ONLY the JSON object, no additional text or explanation.`;
 
           {activeSection === 'appearance' && (
             <div className="settings-section">
+              {/* Font Options */}
+              <div className="settings-field">
+                <label htmlFor="font-preferences">
+                  Font Preferences
+                  <span className="settings-field-hint">
+                    Choose your preferred font family and size
+                  </span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Font Family</label>
+                    <select
+                      value={fontFamily}
+                      onChange={(e) => handleFontChange(e.target.value, undefined)}
+                      className="settings-input"
+                    >
+                      <option value="system">System Default</option>
+                      <option value="serif">Serif</option>
+                      <option value="mono">Monospace</option>
+                      <option value="inter">Inter</option>
+                      <option value="roboto">Roboto</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500' }}>Font Size</label>
+                    <select
+                      value={fontSize}
+                      onChange={(e) => handleFontChange(undefined, e.target.value)}
+                      className="settings-input"
+                    >
+                      <option value="14px">Small (14px)</option>
+                      <option value="16px">Medium (16px)</option>
+                      <option value="18px">Large (18px)</option>
+                      <option value="20px">Extra Large (20px)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Theme Selection */}
               <div className="settings-field">
                 <label htmlFor="theme-selector">
                   Color Theme
@@ -905,7 +1111,6 @@ Return ONLY the JSON object, no additional text or explanation.`;
                       onChange={() => {
                         setUseCustomTheme(true);
                         setTheme('custom');
-                        // Initialize custom theme with current theme colors
                         const currentColors = ThemeService.getCurrentThemeColors();
                         setCustomTheme(currentColors);
                         ThemeService.applyCustomTheme(currentColors);
@@ -915,7 +1120,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                     <span>Custom Theme</span>
                   </label>
                 </div>
-                
+
                 {!useCustomTheme ? (
                   <>
                     <div className="theme-selector">
@@ -936,123 +1141,121 @@ Return ONLY the JSON object, no additional text or explanation.`;
                   </>
                 ) : (
                   <div className="custom-theme-editor">
+                    {/* Quick Palette Selector */}
+                    <div style={{ marginBottom: '20px' }}>
+                      <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', fontSize: '15px' }}>
+                        Quick Color Palettes
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => applyQuickPalette('light')}
+                          className="palette-button"
+                          style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)', color: '#1a1a1a', border: '2px solid #d0d0d0' }}
+                        >
+                          Light
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyQuickPalette('dark')}
+                          className="palette-button"
+                          style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#f1f5f9', border: '2px solid #475569' }}
+                        >
+                          Dark
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyQuickPalette('ocean')}
+                          className="palette-button"
+                          style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #bae6fd 100%)', color: '#0c4a6e', border: '2px solid #7dd3fc' }}
+                        >
+                          Ocean
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyQuickPalette('forest')}
+                          className="palette-button"
+                          style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%)', color: '#14532d', border: '2px solid #86efac' }}
+                        >
+                          Forest
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Saved Themes */}
+                    {savedThemes.length > 0 && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', fontSize: '15px' }}>
+                          Saved Custom Themes
+                        </label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                          {savedThemes.map((savedTheme) => (
+                            <div key={savedTheme.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 12px', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleLoadCustomTheme(savedTheme.name)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '14px', padding: 0 }}
+                              >
+                                {savedTheme.name}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCustomTheme(savedTheme.name)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error-color)', fontSize: '14px', padding: '0 4px' }}
+                                title="Delete theme"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Save Current Theme */}
+                    <div style={{ marginBottom: '20px' }}>
+                      {!showSaveThemeDialog ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowSaveThemeDialog(true)}
+                          className="settings-btn-secondary"
+                        >
+                          Save Current Theme
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={customThemeName}
+                            onChange={(e) => setCustomThemeName(e.target.value)}
+                            placeholder="Theme name"
+                            className="settings-input"
+                            style={{ flex: 1 }}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSaveCustomTheme}
+                            className="settings-btn-primary"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowSaveThemeDialog(false);
+                              setCustomThemeName('');
+                            }}
+                            className="settings-btn-secondary"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Color Pickers - Organized by Importance */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginTop: '16px' }}>
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Sidebar Tab Active Background
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.sidebarTabActiveBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, sidebarTabActiveBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.sidebarTabActiveBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, sidebarTabActiveBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#000000"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Sidebar Tab Background
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.sidebarTabBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, sidebarTabBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.sidebarTabBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, sidebarTabBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#ffffff"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Chat Header Background
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.chatHeaderBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, chatHeaderBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.chatHeaderBg}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, chatHeaderBg: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#0066cc"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Create Script Button Color
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.createScriptButtonColor}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, createScriptButtonColor: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.createScriptButtonColor}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, createScriptButtonColor: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#4CAF50"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
+                      {/* Primary Colors */}
                       <div className="color-picker-group">
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                           Accent Color
@@ -1062,7 +1265,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                             type="color"
                             value={customTheme.accentColor}
                             onChange={(e) => {
-                              const updated = { ...customTheme, accentColor: e.target.value };
+                              const updated = { ...customTheme, accentColor: e.target.value, accentHover: e.target.value };
                               setCustomTheme(updated);
                               ThemeService.applyCustomTheme(updated);
                             }}
@@ -1076,65 +1279,7 @@ Return ONLY the JSON object, no additional text or explanation.`;
                               setCustomTheme(updated);
                               ThemeService.applyCustomTheme(updated);
                             }}
-                            placeholder="#0066cc"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Background Primary
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.bgPrimary}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, bgPrimary: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.bgPrimary}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, bgPrimary: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#ffffff"
-                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="color-picker-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                          Background Secondary
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="color"
-                            value={customTheme.bgSecondary}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, bgSecondary: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
-                          />
-                          <input
-                            type="text"
-                            value={customTheme.bgSecondary}
-                            onChange={(e) => {
-                              const updated = { ...customTheme, bgSecondary: e.target.value };
-                              setCustomTheme(updated);
-                              ThemeService.applyCustomTheme(updated);
-                            }}
-                            placeholder="#f5f5f5"
+                            placeholder="#2563eb"
                             style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
                           />
                         </div>
@@ -1200,6 +1345,93 @@ Return ONLY the JSON object, no additional text or explanation.`;
 
                       <div className="color-picker-group">
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Background Primary
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.bgPrimary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgPrimary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.bgPrimary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgPrimary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#ffffff"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Background Secondary
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.bgSecondary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgSecondary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.bgSecondary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgSecondary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#f5f5f5"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Background Tertiary
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.bgTertiary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgTertiary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.bgTertiary}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, bgTertiary: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#e8e8e8"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
                           Border Color
                         </label>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1226,7 +1458,96 @@ Return ONLY the JSON object, no additional text or explanation.`;
                           />
                         </div>
                       </div>
+
+                      {/* Component-Specific Colors */}
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Header Background
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.chatHeaderBg}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, chatHeaderBg: e.target.value, sidebarTabActiveBg: e.target.value, tabActiveColor: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.chatHeaderBg}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, chatHeaderBg: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#2563eb"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Button Color (Success/Create)
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.createScriptButtonColor}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, createScriptButtonColor: e.target.value, successColor: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.createScriptButtonColor}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, createScriptButtonColor: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#4CAF50"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="color-picker-group">
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
+                          Error Color
+                        </label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="color"
+                            value={customTheme.errorColor}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, errorColor: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            style={{ width: '60px', height: '40px', cursor: 'pointer', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                          />
+                          <input
+                            type="text"
+                            value={customTheme.errorColor}
+                            onChange={(e) => {
+                              const updated = { ...customTheme, errorColor: e.target.value };
+                              setCustomTheme(updated);
+                              ThemeService.applyCustomTheme(updated);
+                            }}
+                            placeholder="#ef4444"
+                            style={{ flex: 1, padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', fontFamily: 'monospace' }}
+                          />
+                        </div>
+                      </div>
                     </div>
+
                     <div style={{ marginTop: '16px' }}>
                       <button
                         type="button"
@@ -1239,42 +1560,6 @@ Return ONLY the JSON object, no additional text or explanation.`;
                         style={{ marginRight: '8px' }}
                       >
                         Reset to Current Theme
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          // Get light preset colors
-                          const lightPreset = {
-                            bgPrimary: '#ffffff',
-                            bgSecondary: '#f5f5f5',
-                            bgTertiary: '#e8e8e8',
-                            textPrimary: '#1a1a1a',
-                            textSecondary: '#666666',
-                            borderColor: '#d0d0d0',
-                            accentColor: '#2563eb',
-                            accentHover: '#1d4ed8',
-                            successColor: '#10b981',
-                            errorColor: '#ef4444',
-                            tabHeaderBg: '#f5f5f5',
-                            tabHeaderBorder: '#e0e0e0',
-                            tabInactiveColor: '#666666',
-                            tabHoverBg: 'rgba(0, 0, 0, 0.05)',
-                            tabHoverColor: '#333333',
-                            tabActiveColor: '#2563eb',
-                            tabActiveBg: '#ffffff',
-                            tabActiveBorder: '#2563eb',
-                            tabContentBg: '#ffffff',
-                            sidebarTabActiveBg: '#2563eb',
-                            sidebarTabBg: '#ffffff',
-                            chatHeaderBg: '#2563eb',
-                            createScriptButtonColor: '#4CAF50',
-                          };
-                          setCustomTheme(lightPreset);
-                          ThemeService.applyCustomTheme(lightPreset);
-                        }}
-                        className="settings-btn-secondary"
-                      >
-                        Reset to Light Theme
                       </button>
                     </div>
                   </div>

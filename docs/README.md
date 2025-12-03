@@ -19,6 +19,7 @@ System design and technical architecture documentation:
 Developer resources and technical documentation:
 
 - **[Testing Guide](./development/testing.md)** - Comprehensive testing infrastructure, unit tests, integration tests, and E2E testing
+- **[API Keys Setup Simplification Plan](./development/api-keys-setup-simplification-plan.md)** - Plan for simplifying API keys and links setup with improved persistence
 
 ### [Integration](./integration/)
 External integrations and API documentation:

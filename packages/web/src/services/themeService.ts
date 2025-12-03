@@ -34,6 +34,17 @@ export interface ThemeColors {
   createScriptButtonColor: string;
 }
 
+export interface FontPreferences {
+  fontFamily: string;
+  fontSize: string;
+}
+
+export interface SavedCustomTheme {
+  name: string;
+  colors: ThemeColors;
+  fonts?: FontPreferences;
+}
+
 export const THEME_PRESETS: Record<ThemePreset, ThemeColors> = {
   light: {
     bgPrimary: '#ffffff',
@@ -165,6 +176,10 @@ export const THEME_PRESETS: Record<ThemePreset, ThemeColors> = {
 export class ThemeService {
   private static currentTheme: ThemePreset | 'custom' = 'light';
   private static customThemeColors: ThemeColors | null = null;
+  private static fontPreferences: FontPreferences = {
+    fontFamily: 'system',
+    fontSize: '16px',
+  };
 
   /**
    * Apply theme colors to the document
@@ -181,7 +196,7 @@ export class ThemeService {
     root.style.setProperty('--accent-hover', colors.accentHover);
     root.style.setProperty('--success-color', colors.successColor);
     root.style.setProperty('--error-color', colors.errorColor);
-    
+
     // Tab-specific variables
     root.style.setProperty('--tab-header-bg', colors.tabHeaderBg);
     root.style.setProperty('--tab-header-border', colors.tabHeaderBorder);
@@ -192,12 +207,33 @@ export class ThemeService {
     root.style.setProperty('--tab-active-bg', colors.tabActiveBg);
     root.style.setProperty('--tab-active-border', colors.tabActiveBorder);
     root.style.setProperty('--tab-content-bg', colors.tabContentBg);
-    
+
     // Sidebar and chat-specific variables
     root.style.setProperty('--sidebar-tab-active-bg', colors.sidebarTabActiveBg);
     root.style.setProperty('--sidebar-tab-bg', colors.sidebarTabBg);
     root.style.setProperty('--chat-header-bg', colors.chatHeaderBg);
     root.style.setProperty('--create-script-button-color', colors.createScriptButtonColor);
+  }
+
+  /**
+   * Apply font preferences to the document
+   */
+  private static applyFonts(fonts: FontPreferences): void {
+    const root = document.documentElement;
+    const body = document.body;
+
+    // Map font family selection to actual font stack
+    const fontFamilies: Record<string, string> = {
+      'system': `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
+      'serif': `'Georgia', 'Times New Roman', serif`,
+      'mono': `'Monaco', 'Courier New', monospace`,
+      'inter': `'Inter', -apple-system, BlinkMacSystemFont, sans-serif`,
+      'roboto': `'Roboto', -apple-system, BlinkMacSystemFont, sans-serif`,
+    };
+
+    body.style.fontFamily = fontFamilies[fonts.fontFamily] || fontFamilies['system'];
+    root.style.setProperty('--base-font-size', fonts.fontSize);
+    body.style.fontSize = fonts.fontSize;
   }
 
   /**
@@ -219,6 +255,14 @@ export class ThemeService {
   }
 
   /**
+   * Apply font preferences
+   */
+  static applyFontPreferences(fonts: FontPreferences): void {
+    this.fontPreferences = fonts;
+    this.applyFonts(fonts);
+  }
+
+  /**
    * Get the current theme
    */
   static getCurrentTheme(): ThemePreset | 'custom' {
@@ -236,12 +280,30 @@ export class ThemeService {
   }
 
   /**
+   * Get the current font preferences
+   */
+  static getCurrentFontPreferences(): FontPreferences {
+    return this.fontPreferences;
+  }
+
+  /**
    * Initialize theme from localStorage or default to light
    */
   static initializeTheme(): void {
     const savedTheme = localStorage.getItem('otto-theme') as ThemePreset | null;
     const savedCustomTheme = localStorage.getItem('otto-custom-theme');
-    
+    const savedFonts = localStorage.getItem('otto-font-preferences');
+
+    // Load font preferences
+    if (savedFonts) {
+      try {
+        const fonts = JSON.parse(savedFonts) as FontPreferences;
+        this.applyFontPreferences(fonts);
+      } catch (e) {
+        logger.error('Failed to load font preferences:', e);
+      }
+    }
+
     if (savedCustomTheme) {
       try {
         const customColors = JSON.parse(savedCustomTheme) as ThemeColors;
@@ -251,7 +313,7 @@ export class ThemeService {
         logger.error('Failed to load custom theme:', e);
       }
     }
-    
+
     if (savedTheme && THEME_PRESETS[savedTheme]) {
       this.applyTheme(savedTheme);
     } else {
@@ -274,6 +336,64 @@ export class ThemeService {
       localStorage.setItem('otto-theme', 'custom');
       this.applyCustomTheme(theme);
     }
+  }
+
+  /**
+   * Save font preferences to localStorage
+   */
+  static saveFontPreferences(fonts: FontPreferences): void {
+    localStorage.setItem('otto-font-preferences', JSON.stringify(fonts));
+    this.applyFontPreferences(fonts);
+  }
+
+  /**
+   * Save a named custom theme
+   */
+  static saveNamedTheme(name: string, colors: ThemeColors, fonts?: FontPreferences): void {
+    const savedThemes = this.getSavedThemes();
+    const theme: SavedCustomTheme = { name, colors, fonts };
+
+    // Update or add the theme
+    const existingIndex = savedThemes.findIndex(t => t.name === name);
+    if (existingIndex >= 0) {
+      savedThemes[existingIndex] = theme;
+    } else {
+      savedThemes.push(theme);
+    }
+
+    localStorage.setItem('otto-saved-themes', JSON.stringify(savedThemes));
+  }
+
+  /**
+   * Get all saved custom themes
+   */
+  static getSavedThemes(): SavedCustomTheme[] {
+    const saved = localStorage.getItem('otto-saved-themes');
+    if (!saved) return [];
+
+    try {
+      return JSON.parse(saved) as SavedCustomTheme[];
+    } catch (e) {
+      logger.error('Failed to load saved themes:', e);
+      return [];
+    }
+  }
+
+  /**
+   * Load a saved custom theme by name
+   */
+  static loadSavedTheme(name: string): SavedCustomTheme | null {
+    const themes = this.getSavedThemes();
+    return themes.find(t => t.name === name) || null;
+  }
+
+  /**
+   * Delete a saved custom theme
+   */
+  static deleteSavedTheme(name: string): void {
+    const themes = this.getSavedThemes();
+    const filtered = themes.filter(t => t.name !== name);
+    localStorage.setItem('otto-saved-themes', JSON.stringify(filtered));
   }
 }
 

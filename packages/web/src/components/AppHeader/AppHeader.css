@@ -126,6 +126,7 @@
 /* Help Menu Styles */
 .help-menu-container {
   position: relative;
+  z-index: 9999;
 }
 
 .help-button {
@@ -163,7 +164,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 220px;
   max-width: 280px;
-  z-index: 1000;
+  z-index: 9999;
   overflow: hidden;
 }
 
